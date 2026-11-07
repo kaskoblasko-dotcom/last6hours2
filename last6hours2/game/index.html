@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>The Last 6 Hours 2: The House</title>
+<meta name="theme-color" content="#000000"><meta name="mobile-web-app-capable" content="yes">
+<style>
+:root{color-scheme:dark}
+html,body{margin:0;height:100%;background:#000;color:#cfd8cf;font:14px 'Courier New',monospace;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none;overscroll-behavior:none}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
+.o{position:fixed;inset:0;pointer-events:none}
+#vig{background:radial-gradient(ellipse at center,transparent 45%,#000c 100%)}
+#red{background:radial-gradient(ellipse at center,transparent 35%,#d00 140%);opacity:0}
+#slats{display:none;background:repeating-linear-gradient(180deg,transparent 0 18px,#000 18px 34px)}
+#slats::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 20%,#000 95%)}
+#clock{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:16px;font-size:24px;letter-spacing:2px;text-shadow:0 0 8px #000}
+#room{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);font-size:12px;opacity:.55;letter-spacing:2px}
+#bars{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:16px;width:110px}
+#bars div{height:7px;border:1px solid #556;margin-bottom:5px;background:#0008}
+#bars i{display:block;height:100%}#bat i{background:#ddc060}#sta i{background:#6aa0d0}
+#bars small{display:block;font-size:10px;opacity:.6;margin-bottom:2px}
+#msg{position:fixed;left:50%;bottom:19%;transform:translateX(-50%);width:min(90vw,640px);text-align:center;font-size:16px;color:#e8e8b0;text-shadow:0 0 6px #000;opacity:0;transition:opacity .4s;pointer-events:none}
+#prompt{position:fixed;left:50%;top:60%;transform:translateX(-50%);font-size:16px;color:#fff;background:#0009;padding:6px 12px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .15s}
+#cross{position:fixed;left:50%;top:50%;width:4px;height:4px;margin:-2px;border-radius:50%;background:#fff6;pointer-events:none}
+.scr{position:fixed;inset:0;background:#000d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px;z-index:20}
+.scr h1{font-size:clamp(26px,6vw,54px);margin:0;letter-spacing:4px;font-weight:400}
+.scr h2{margin:-8px 0 0;font-weight:400;font-size:clamp(14px,2.5vw,20px);color:#8a9;letter-spacing:6px}
+.scr p{max-width:620px;line-height:1.6;margin:0;color:#aab}
+.scr button,#brb{font:inherit;font-size:18px;padding:12px 28px;background:#a11;color:#fff;border:0;border-radius:6px;cursor:pointer}
+#brb{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:25;font-size:12px;padding:8px 12px;background:#222;display:none}
+#scr:not(.hide)~#brb{display:block}
+#ver{position:fixed;left:10px;bottom:6px;font-size:10px;opacity:.4;z-index:26;pointer-events:none}
+#js{position:fixed;inset:0;background:radial-gradient(circle,#111,#000 70%);display:none;align-items:center;justify-content:center;z-index:30}
+#js.on{display:flex}
+#js i{width:14vmin;height:6vmin;background:#fff;border-radius:50%;margin:0 6vmin;box-shadow:0 0 6vmin 2vmin #fff;animation:z .12s infinite alternate}
+#js.fish i{background:#e8ffb0;box-shadow:0 0 6vmin 2vmin #8f4}
+@keyframes z{from{transform:scale(.7) translate(-1vmin,0)}to{transform:scale(2.8) translate(1vmin,1vmin)}}
+#rot{position:fixed;inset:0;z-index:40;background:#000;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;font-size:18px}
+@media (orientation:portrait) and (pointer:coarse){#rot{display:flex}}
+#tc{display:none}
+body.t #tc{display:block}
+.b{position:fixed;width:64px;height:64px;border-radius:50%;background:#000a;border:2px solid #667;color:#cfd8cf;font:11px 'Courier New',monospace;display:flex;align-items:center;justify-content:center;text-align:center;z-index:12;touch-action:none}
+.b.on{background:#ddc;color:#000}
+#bA{right:calc(22px + env(safe-area-inset-right,0px));bottom:calc(60px + env(safe-area-inset-bottom,0px));width:76px;height:76px}
+#bF{right:calc(112px + env(safe-area-inset-right,0px));bottom:calc(26px + env(safe-area-inset-bottom,0px))}
+#bS{right:calc(22px + env(safe-area-inset-right,0px));bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+#bH{right:calc(112px + env(safe-area-inset-right,0px));bottom:calc(110px + env(safe-area-inset-bottom,0px));display:none;background:#312}
+#joy{position:fixed;width:120px;height:120px;margin:-60px;border-radius:50%;border:2px solid #fff3;display:none;pointer-events:none;z-index:11}
+#knob{position:absolute;left:40px;top:40px;width:40px;height:40px;border-radius:50%;background:#fff4}
+.hide{display:none!important}
+</style></head><body>
+<div id="vig" class="o"></div><div id="red" class="o"></div><div id="slats" class="o"></div><div id="cross"></div>
+<div id="clock">12 AM</div><div id="room"></div>
+<div id="bars"><small>FLASHLIGHT</small><div id="bat"><i style="width:100%"></i></div><small>STAMINA</small><div id="sta"><i style="width:100%"></i></div></div>
+<div id="msg"></div><div id="prompt"></div>
+<div id="tc"><div id="joy"><div id="knob"></div></div>
+<div class="b" id="bF">LIGHT</div><div class="b" id="bS">RUN</div><div class="b" id="bA">ACT</div><div class="b" id="bH">HOLD<br>BREATH</div></div>
+<div id="rot">Rotate your device to landscape to play.</div>
+<div id="js"><i></i><i></i></div>
+<div id="scr" class="scr"></div>
+<button id="brb">BRIGHTNESS: NORMAL</button><div id="ver"></div>
+<script src="three.min.js"></script>
+<script src="game.js"></script>
+</body></html>

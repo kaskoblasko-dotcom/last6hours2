@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>The Last 6 Hours 2</title>
+<style>html,body{margin:0;height:100%;background:#000;color:#cfd8cf;font:16px 'Courier New',monospace}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px;box-sizing:border-box}
+h1{font-weight:400;letter-spacing:4px;font-size:26px;margin:0}p{margin:0;max-width:520px;line-height:1.5;color:#aab}
+button{font:inherit;font-size:17px;padding:12px 26px;background:#a11;color:#fff;border:0;border-radius:6px;margin:4px}button.g{background:#333}.hide{display:none}</style></head>
+<body><h1>THE LAST 6 HOURS 2</h1><p id="t">Connecting to the house...</p>
+<div id="u" class="hide"><button id="dl">DOWNLOAD UPDATE</button><button id="sk" class="g">SKIP</button></div>
+<script src="config.js"></script>
+<script>
+(async()=>{
+ const C=window.L6H||{},S=(C.server||'').replace(/\/$/,''),$=i=>document.getElementById(i);
+ try{window.Capacitor.Plugins.StatusBar.hide()}catch(e){}
+ const get=async(u,ms)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);try{const r=await fetch(u,{cache:'no-store',signal:c.signal});return r.ok?await r.json():null}catch(e){return null}finally{clearTimeout(t)}};
+ const go=online=>{location.replace(online?S+'/':'game/index.html')};
+ if(!S)return go(false);
+ const [ver,app]=await Promise.all([get(S+'/version.json',5000),get(S+'/app.json',5000)]);
+ const online=!!ver;
+ if(online&&app&&app.versionCode>(C.apkVersion||0)&&app.url){
+  $('t').textContent='A new app version is available'+(app.notes?': '+app.notes:'.')+(app.required?' You must update to continue.':'');
+  $('u').classList.remove('hide');if(app.required)$('sk').classList.add('hide');
+  $('dl').onclick=()=>{try{window.Capacitor.Plugins.Browser.open({url:app.url})}catch(e){location.href=app.url}};
+  $('sk').onclick=()=>go(true);return}
+ $('t').textContent=online?'Entering...':'Server unreachable. Starting offline copy...';
+ go(online);
+})();
+</script></body></html>

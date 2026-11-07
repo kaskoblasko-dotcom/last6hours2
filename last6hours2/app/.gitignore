@@ -1,0 +1,5 @@
+node_modules/
+android/
+www/game/
+www/config.js
+capacitor.config.json

@@ -1,0 +1,2 @@
+{ "name": "last-6-hours-2", "private": true,
+  "scripts": { "start": "node server/server.js", "test": "node test/sim.js" } }
