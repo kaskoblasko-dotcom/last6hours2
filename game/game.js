@@ -96,17 +96,19 @@ const BAT=[];{const spots=[[4.5,5.5],[11.5,5.5],[19.5,5.5],[26.5,5.5],[12.5,8.5]
 
 /* monsters */
 function mkCreature(){const g=new THREE.Group(),b=new THREE.MeshLambertMaterial({color:0x050505});
+ /* same build as the door monster in The Last 6 Hours: tall black torso, egg head, long stiff arms, eyes that glow white */
  const add=(geo,x,y,z,p=g)=>{const m=new THREE.Mesh(geo,b);m.position.set(x,y,z);p.add(m);return m};
- add(new THREE.CylinderGeometry(.2,.28,1,8),0,1.15,0);add(new THREE.SphereGeometry(.19,12,10),0,1.8,0).scale.y=1.3;
- const arm=x=>{const a=new THREE.Group();a.position.set(x,1.6,0);g.add(a);add(new THREE.CylinderGeometry(.05,.04,1.3,6),0,-.6,0,a);return a},leg=x=>{const a=new THREE.Group();a.position.set(x,.7,0);g.add(a);add(new THREE.CylinderGeometry(.08,.06,.75,6),0,-.37,0,a);return a};
- const em=new THREE.MeshBasicMaterial({color:0xffffff,fog:false});for(const x of[-.07,.07]){const e=new THREE.Mesh(new THREE.SphereGeometry(.04,8,8),em);e.position.set(x,1.82,.17);e.scale.y=1.4;g.add(e)}
- g.userData={aL:arm(-.34),aR:arm(.34),lL:leg(-.12),lR:leg(.12)};g.visible=false;scene.add(g);return g}
+ add(new THREE.CylinderGeometry(.22,.3,1,8),0,1,0);add(new THREE.SphereGeometry(.2,12,10),0,1.72,0).scale.y=1.25;
+ const arm=x=>{const a=new THREE.Group();a.position.set(x,1.5,0);g.add(a);add(new THREE.CylinderGeometry(.06,.06,1.1,6),0,-.55,0,a);return a},leg=x=>{const a=new THREE.Group();a.position.set(x,.6,0);g.add(a);add(new THREE.CylinderGeometry(.08,.08,.6,6),0,-.3,0,a);return a};
+ const em=new THREE.MeshBasicMaterial({color:0xffffff,fog:false});for(const x of[-.07,.07]){const e=new THREE.Mesh(new THREE.SphereGeometry(.035,8,8),em);e.position.set(x,1.75,.18);g.add(e)}
+ g.userData={aL:arm(-.4),aR:arm(.4),lL:leg(-.12),lR:leg(.12)};g.visible=false;scene.add(g);return g}
 function mkFish(){const g=new THREE.Group(),m=new THREE.MeshLambertMaterial({color:0x1c3a2a});
+ /* same build as the Loch Ness monster in The Last 6 Hours: boxy neck, flat head, pale green eyes (now with a jaw that snaps) */
  const add=(geo,x,y,z,p=g)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);p.add(o);return o};
- add(new THREE.CylinderGeometry(.1,.14,1.1,8),0,.55,0);add(new THREE.BoxGeometry(.34,.22,.6),0,1.12,.15);
- const jaw=new THREE.Group();jaw.position.set(0,1.02,-.1);g.add(jaw);add(new THREE.BoxGeometry(.3,.07,.5),0,0,.28,jaw);
- const tm=new THREE.MeshBasicMaterial({color:0xeeeedd});for(let i=0;i<5;i++){const t=new THREE.Mesh(new THREE.BoxGeometry(.02,.07,.02),tm);t.position.set(-.12+i*.06,.05,.5);jaw.add(t)}
- const em=new THREE.MeshBasicMaterial({color:0xe8ffb0,fog:false});for(const x of[-.1,.1]){const e=new THREE.Mesh(new THREE.SphereGeometry(.035,8,8),em);e.position.set(x,1.2,.35);g.add(e)}
+ add(new THREE.BoxGeometry(.2,1.3,.2),0,.65,0);add(new THREE.BoxGeometry(.3,.22,.55),0,1.38,.1);
+ const jaw=new THREE.Group();jaw.position.set(0,1.27,-.1);g.add(jaw);add(new THREE.BoxGeometry(.26,.06,.45),0,0,.3,jaw);
+ const tm=new THREE.MeshBasicMaterial({color:0xeeeedd});for(let i=0;i<5;i++){const t=new THREE.Mesh(new THREE.BoxGeometry(.02,.06,.02),tm);t.position.set(-.1+i*.05,.05,.48);jaw.add(t)}
+ const em=new THREE.MeshBasicMaterial({color:0xe8ffb0,fog:false});for(const x of[-.08,.08]){const e=new THREE.Mesh(new THREE.SphereGeometry(.03,8,8),em);e.position.set(x,1.42,.34);g.add(e)}
  g.userData={jaw};g.visible=false;scene.add(g);return g}
 const cm=mkCreature(),fm=mkFish();
 
