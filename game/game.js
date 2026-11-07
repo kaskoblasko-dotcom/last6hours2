@@ -7,8 +7,8 @@ const HL=['12 AM','1 AM','2 AM','3 AM','4 AM','5 AM','6 AM'];
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 
 /* ---------- state ---------- */
-const S={t:0,running:false,over:true,paused:false,exitOpen:false,hr:0,dd:0,hint:{},amb:10,bright:clamp(+store.get('l6h2_b')||1,0,2)};
-const P={x:3.5,z:5.5,yaw:Math.PI,pitch:0,hide:null,baseYaw:0,stam:1,tired:false,flash:false,bat:100,breath:1,holding:false,sprinting:false,moving:false,noise:0,bob:0,stepD:0};
+const S={t:0,running:false,over:true,paused:false,exitOpen:false,hr:0,dd:0,hint:{},amb:10,st:{batt:0,thrown:0,hides:0},bright:clamp(+store.get('l6h2_b')||1,0,2)};
+const P={x:3.5,z:5.5,yaw:Math.PI,pitch:0,hide:null,baseYaw:0,stam:1,tired:false,flash:false,bat:100,breath:1,holding:false,sprinting:false,moving:false,noise:0,bob:0,stepD:0,bottles:2};
 const I={mx:0,mz:0,sprint:false,breath:false},K={};
 
 /* ---------- audio ---------- */
@@ -95,22 +95,37 @@ const BAT=[];{const spots=[[4.5,5.5],[11.5,5.5],[19.5,5.5],[26.5,5.5],[12.5,8.5]
  spots.sort(()=>Math.random()-.5).slice(0,8).forEach(([x,z])=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,.1,z);m.rotation.z=1.57;scene.add(m);BAT.push({x,z,m,got:false})})}
 
 /* monsters */
-function mkCreature(){const g=new THREE.Group(),b=new THREE.MeshLambertMaterial({color:0x050505});
- /* same build as the door monster in The Last 6 Hours: tall black torso, egg head, long stiff arms, eyes that glow white */
+function mkCreature(){const g=new THREE.Group(),b=new THREE.MeshBasicMaterial({color:0x010101});
+ /* the L6H door monster: a tall void-black figure. You only ever see its two dim, slanted eyes */
  const add=(geo,x,y,z,p=g)=>{const m=new THREE.Mesh(geo,b);m.position.set(x,y,z);p.add(m);return m};
- add(new THREE.CylinderGeometry(.22,.3,1,8),0,1,0);add(new THREE.SphereGeometry(.2,12,10),0,1.72,0).scale.y=1.25;
- const arm=x=>{const a=new THREE.Group();a.position.set(x,1.5,0);g.add(a);add(new THREE.CylinderGeometry(.06,.06,1.1,6),0,-.55,0,a);return a},leg=x=>{const a=new THREE.Group();a.position.set(x,.6,0);g.add(a);add(new THREE.CylinderGeometry(.08,.08,.6,6),0,-.3,0,a);return a};
- const em=new THREE.MeshBasicMaterial({color:0xffffff,fog:false});for(const x of[-.07,.07]){const e=new THREE.Mesh(new THREE.SphereGeometry(.035,8,8),em);e.position.set(x,1.75,.18);g.add(e)}
- g.userData={aL:arm(-.4),aR:arm(.4),lL:leg(-.12),lR:leg(.12)};g.visible=false;scene.add(g);return g}
-function mkFish(){const g=new THREE.Group(),m=new THREE.MeshLambertMaterial({color:0x1c3a2a});
- /* same build as the Loch Ness monster in The Last 6 Hours: boxy neck, flat head, pale green eyes (now with a jaw that snaps) */
- const add=(geo,x,y,z,p=g)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);p.add(o);return o};
- add(new THREE.BoxGeometry(.2,1.3,.2),0,.65,0);add(new THREE.BoxGeometry(.3,.22,.55),0,1.38,.1);
- const jaw=new THREE.Group();jaw.position.set(0,1.27,-.1);g.add(jaw);add(new THREE.BoxGeometry(.26,.06,.45),0,0,.3,jaw);
- const tm=new THREE.MeshBasicMaterial({color:0xeeeedd});for(let i=0;i<5;i++){const t=new THREE.Mesh(new THREE.BoxGeometry(.02,.06,.02),tm);t.position.set(-.1+i*.05,.05,.48);jaw.add(t)}
- const em=new THREE.MeshBasicMaterial({color:0xe8ffb0,fog:false});for(const x of[-.08,.08]){const e=new THREE.Mesh(new THREE.SphereGeometry(.03,8,8),em);e.position.set(x,1.42,.34);g.add(e)}
- g.userData={jaw};g.visible=false;scene.add(g);return g}
+ const body=new THREE.Group();body.scale.setScalar(1.1);g.add(body);
+ add(new THREE.CylinderGeometry(.22,.3,1,8),0,1,0,body);
+ const head=new THREE.Group();head.position.set(0,1.72,0);body.add(head);
+ add(new THREE.SphereGeometry(.2,12,10),0,0,0,head).scale.y=1.25;
+ const em=new THREE.MeshBasicMaterial({color:0xdadada,fog:false});
+ for(const x of[-1,1]){const e=new THREE.Mesh(new THREE.SphereGeometry(.04,10,8),em);e.position.set(x*.08,.03,.17);e.scale.set(1.7,.8,.35);e.rotation.z=-x*.3;head.add(e)}
+ const arm=x=>{const a=new THREE.Group();a.position.set(x,1.5,0);body.add(a);add(new THREE.CylinderGeometry(.06,.06,1.1,6),0,-.55,0,a);return a},leg=x=>{const a=new THREE.Group();a.position.set(x,.6,0);body.add(a);add(new THREE.CylinderGeometry(.08,.08,.6,6),0,-.3,0,a);return a};
+ g.userData={aL:arm(-.4),aR:arm(.4),lL:leg(-.12),lR:leg(.12),head,rch:0};g.visible=false;scene.add(g);return g}
+function mkFish(){const g=new THREE.Group(),m=new THREE.MeshPhongMaterial({color:0x185a30,specular:0xaaffcc,shininess:90,emissive:0x021208});
+ /* the L6H pipe monster: glossy smooth green, thick round neck, big bulbous head hanging forward, open mouth with a fringe of white teeth and a yellow-green glow inside */
+ const add=(geo,x,y,z,p=g,mt=m)=>{const o=new THREE.Mesh(geo,mt);o.position.set(x,y,z);p.add(o);return o};
+ const segs=[],joints=[];for(let i=0;i<9;i++){const r=.19-.04*i/8;segs.push(add(new THREE.CylinderGeometry(r,r+.004,.3,16),0,0,0));joints.push(add(new THREE.SphereGeometry(r+.002,16,12),0,0,0))}
+ joints.push(add(new THREE.SphereGeometry(.15,16,12),0,0,0));
+ const head=new THREE.Group();g.add(head);
+ add(new THREE.SphereGeometry(.26,20,16),0,.1,.1,head).scale.set(1,.85,1.2);add(new THREE.SphereGeometry(.18,16,12),0,.18,.0,head).scale.set(1,.8,1);
+ const gm=new THREE.MeshBasicMaterial({color:0xc4d86a});add(new THREE.SphereGeometry(.2,14,10),0,-.08,.2,head,gm).scale.set(.95,.5,1.05);
+ const jaw=new THREE.Group();jaw.position.set(0,-.06,-.02);head.add(jaw);add(new THREE.SphereGeometry(.2,16,10),0,-.04,.22,jaw).scale.set(1,.38,1.15);
+ const tm=new THREE.MeshBasicMaterial({color:0xf0f0e6});
+ for(let i=-7;i<=7;i++){const an=i*.19,x=Math.sin(an)*.2,z=.2+Math.cos(an)*.25;
+  const u=new THREE.Mesh(new THREE.ConeGeometry(.01,.08,5),tm);u.position.set(x,-.02,z);u.rotation.x=Math.PI;head.add(u);
+  const l=new THREE.Mesh(new THREE.ConeGeometry(.01,.07,5),tm);l.position.set(x*.95,.03,z-.03);jaw.add(l)}
+ const el=new THREE.PointLight(0xccdd77,.35,3.5,1.6);el.position.set(0,-.1,.4);head.add(el);
+ g.userData={jaw,head,segs,joints};g.visible=false;scene.add(g);return g}
 const cm=mkCreature(),fm=mkFish();
+/* throwable bottles */
+const BOT=[];{const spots=[[8.5,5.5],[16.5,5.5],[2.5,9.5],[20.5,9.5],[15.5,13.5],[2.5,15.5],[26.5,14.5],[25.5,4.5],[6.5,12.5]].filter(([x,z])=>!solid(x|0,z|0));
+ const geo=new THREE.BoxGeometry(.07,.22,.07),mat=new THREE.MeshBasicMaterial({color:0x55dd88});
+ spots.forEach(([x,z])=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,.12,z);m.rotation.z=1.4;scene.add(m);BOT.push({x,z,m,got:false})})}
 
 /* ---------- creature AI ---------- */
 const C={x:26.5,z:4.5,face:Math.PI,st:'patrol',alert:0,tx:-1,tz:-1,fl:null,wx:null,wz:null,ls:null,lostT:0,q:[],waiting:0,opening:false,room:'l',ping:20,noiseCd:0,moved:0,stepD:0,ph:0,nx:0,nz:0};
@@ -165,9 +180,13 @@ function creatureTick(dt){const ox=C.x,oz=C.z,dd=S.dd,dx=P.x-C.x,dz=P.z-C.z,dist
   break}}
  C.moved=Math.hypot(C.x-ox,C.z-oz);C.stepD+=C.moved;
  if(C.stepD>1.1){C.stepD=0;const s=spat(C.x,C.z);noise(.1,260,.5*s.v*(C.st=='hunt'?1.3:1),0,s.pan)}
- if(C.st=='hunt'&&Math.random()<dt*.35){const s=spat(C.x,C.z);tone(R(60,90),.5,'sawtooth',.18*s.v,-25,0,s.pan)}}
-function syncCreature(dt){const u=cm.userData,sw=Math.min(1,C.moved/(dt||1)/2);cm.position.set(C.x,0,C.z);cm.rotation.y=C.face;C.ph+=C.moved*4;
- u.lL.rotation.x=Math.sin(C.ph)*.6*sw;u.lR.rotation.x=-Math.sin(C.ph)*.6*sw;u.aL.rotation.x=-Math.sin(C.ph)*.4*sw;u.aR.rotation.x=Math.sin(C.ph)*.4*sw;cm.position.y=Math.abs(Math.sin(C.ph))*.05*sw}
+ if(C.st=='hunt'&&Math.random()<dt*.35){const s=spat(C.x,C.z);tone(R(60,90),.5,'sawtooth',.18*s.v,-25,0,s.pan)}
+ C.br=(C.br||0)-dt;if(C.br<=0&&dist<8&&!P.hide){C.br=R(1.3,2);const s=spat(C.x,C.z);noise(.7,420,.2*s.v+.05,0,s.pan);tone(R(70,95),.6,'sawtooth',.05*s.v,-12,.05,s.pan)}}
+function syncCreature(dt){const u=cm.userData,sw=Math.min(1,C.moved/(dt||1)/2),t=S.t;cm.position.set(C.x,0,C.z);cm.rotation.y=C.face;C.ph+=C.moved*4;
+ u.rch+=((C.st=='hunt'?1:0)-u.rch)*Math.min(1,dt*4);
+ const sg=Math.sin(C.ph),near=!P.hide&&Math.hypot(P.x-C.x,P.z-C.z)<13,want=near?clamp(angDiff(C.face,Math.atan2(P.x-C.x,P.z-C.z)),-1.1,1.1):Math.sin(t*.8)*.5;
+ u.lL.rotation.x=sg*.6*sw;u.lR.rotation.x=-sg*.6*sw;u.aL.rotation.x=-sg*.4*sw-u.rch*.5;u.aR.rotation.x=sg*.4*sw-u.rch*.5;
+ u.head.rotation.y+=(want-u.head.rotation.y)*Math.min(1,dt*5);cm.position.y=Math.abs(sg)*.05*sw}
 
 /* ---------- fish monster ---------- */
 const FS={at:0,ph:'dorm',t:0,r:0,r0:0,cool:18,reloc:20,stirT:0,gT:0};
@@ -187,17 +206,32 @@ function fishTick(dt){const wp=WP[FS.at],dist=Math.hypot(P.x-wp.x,P.z-wp.z),near
  case 'rise':FS.t+=dt;FS.r=Math.min(1,FS.t/.45);if(flashAt(wp)){fishRetreat();break}if(FS.t>=.6){FS.ph='lunge';FS.t=0;tone(300,.35,'sawtooth',.3,500);noise(.3,3500,.4)}break;
  case 'lunge':FS.t+=dt;if(FS.t>=.35){if(!P.hide&&Math.hypot(P.x-wp.x,P.z-wp.z)<2.3){die('fish');return}FS.ph='retreat';FS.t=0;FS.r0=FS.r;FS.cool=9}break;
  case 'retreat':FS.t+=dt;FS.r=Math.max(0,FS.r0*(1-FS.t/.5));if(FS.t>=.5){FS.ph='dorm';FS.r=0;FS.reloc=R(8,14)}break}}
-function syncFish(){const wp=WP[FS.at],a=Math.atan2(P.x-wp.x,P.z-wp.z);fm.visible=FS.r>.02;fm.position.set(wp.x,wp.y-1.2*(1-FS.r),wp.z);fm.rotation.y=a;let jaw=0;
- if(FS.ph=='lunge'){const d=Math.max(0,Math.min(1.5,Math.hypot(P.x-wp.x,P.z-wp.z)-.5)),k=Math.min(1,FS.t/.3);fm.position.x+=Math.sin(a)*d*k;fm.position.z+=Math.cos(a)*d*k;jaw=.55*k}
- fm.userData.jaw.rotation.x=jaw;
+function syncFish(){const wp=WP[FS.at],a=Math.atan2(P.x-wp.x,P.z-wp.z),u=fm.userData,t=S.t;fm.visible=FS.r>.02;fm.position.set(wp.x,wp.y-1.6*(1-FS.r),wp.z);fm.rotation.y=a;let jaw=.2+Math.sin(t*4)*.05,reach=FS.ph=='rise'?.3:0;
+ if(FS.ph=='lunge'){const d=Math.max(0,Math.min(1.5,Math.hypot(P.x-wp.x,P.z-wp.z)-.5)),k=Math.min(1,FS.t/.3);fm.position.x+=Math.sin(a)*d*k;fm.position.z+=Math.cos(a)*d*k;jaw=.75*k;reach=1}
+ const NS=9,PX=[],PY=[],PZ=[];
+ for(let i=0;i<=NS;i++){const f=i/NS;PX.push(Math.sin(t*1.2+f*3.4)*.1*f);PY.push(f*1.35);PZ.push(f*f*(.2+.9*reach)+Math.sin(t*1.6+f*2.2)*.05*f)}
+ for(let i=0;i<NS;i++){const s=u.segs[i],dx=PX[i+1]-PX[i],dy=PY[i+1]-PY[i],dz=PZ[i+1]-PZ[i],Ln=Math.hypot(dx,dy,dz);s.position.set((PX[i]+PX[i+1])/2,(PY[i]+PY[i+1])/2,(PZ[i]+PZ[i+1])/2);s.rotation.set(Math.atan2(dz,dy),0,-Math.atan2(dx,dy));s.scale.y=Ln/.3*1.08;const j=u.joints[i];j.position.set(PX[i],PY[i],PZ[i])}
+ u.joints[NS].position.set(PX[NS],PY[NS],PZ[NS]);
+ u.head.position.set(PX[NS],PY[NS]+.05,PZ[NS]);u.head.rotation.set(.5+reach*.3+Math.sin(t*1.4)*.05,Math.sin(t*.9)*.15,0);u.jaw.rotation.x=jaw;
  WP.forEach((w,i)=>{const on=i==FS.at&&(FS.ph=='stir'||FS.ph=='rise');if(on){const k=(S.t*1.5)%1;w.ring.scale.setScalar(1+k*3);w.ring.material.opacity=.5*(1-k)}else w.ring.material.opacity=0})}
+
+/* ---------- throwing ---------- */
+function throwBottle(){if(!S.running||S.paused||P.hide||P.bottles<=0)return;P.bottles--;S.st.thrown++;
+ const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw);let lx=P.x,lz=P.z;
+ for(let d=.4;d<=11;d+=.3){const x=P.x+fx*d,z=P.z+fz*d,tx=Math.floor(x),tz=Math.floor(z);if(wallAt(tx,tz)||PB[tz*W+tx]==1)break;lx=x;lz=z}
+ tone(320,.12,'sine',.08,-120);const s=spat(lx,lz),v=Math.max(.4,s.v);
+ noise(.4,6000,.5*v,.3,s.pan);tone(2600,.2,'triangle',.1*v,-900,.3,s.pan);tone(1800,.3,'triangle',.08*v,-600,.36,s.pan);
+ msg('Glass shatters somewhere ahead.',2200);
+ if(S.t>22&&Math.hypot(lx-C.x,lz-C.z)<26){
+  if(C.st=='patrol'||C.st=='queue'||C.st=='investigate'){C.st='investigate';C.nx=lx;C.nz=lz;setTarget(Math.floor(lx),Math.floor(lz));C.waiting=0;C.noiseCd=2;C.opening=false;C.q=[]}
+  else if(C.st=='hunt'&&C.lostT>.4){C.ls={x:lx,z:lz};C.lostT=0}}}
 
 /* ---------- player ---------- */
 function setFlash(v){if(v&&(P.bat<=0||P.hide||!S.running))return;P.flash=v;click()}
 function nearest(){if(P.hide)return{t:'exit'};let best=null,bd=1e9;const fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw);
  for(const w of WARD){const dx=w.cx-P.x,dz=w.cz-P.z,d=Math.hypot(dx,dz);if(d>1.9||(dx*fx+dz*fz)/d<.55||-(dx*w.fx+dz*w.fz)/d<.1)continue;if(d<bd){bd=d;best={t:'hide',w}}}return best}
 function interact(){if(!S.running||S.paused)return;const n=nearest();if(!n)return;if(n.t=='exit')exitHide();else enterHide(n.w)}
-function enterHide(w){const d=Math.hypot(P.x-C.x,P.z-C.z),saw=C.st=='hunt'&&d<18&&los(C.x,C.z,P.x,P.z),hot=C.st=='hunt'||C.alert>.4;
+function enterHide(w){S.st.hides++;const d=Math.hypot(P.x-C.x,P.z-C.z),saw=C.st=='hunt'&&d<18&&los(C.x,C.z,P.x,P.z),hot=C.st=='hunt'||C.alert>.4;
  P.hide=w;P.baseYaw=Math.atan2(-w.fx,-w.fz);P.x=w.cx;P.z=w.cz;P.yaw=P.baseYaw;P.pitch=0;P.flash=false;P.holding=false;P.sprinting=false;P.noise=0;
  $('slats').style.display='block';$('bH').style.display=coarse?'flex':'none';tone(300,.1,'square',.08);noise(.1,400,.15);
  if(saw){C.st='queue';C.q=[{ward:w,sure:true}];C.tx=-1;C.waiting=0;C.opening=false;msg('It saw you hide...',3000)}
@@ -217,47 +251,52 @@ function playerTick(dt){
  P.noise=P.moving?(P.sprinting?10:4):0;
  if(P.moving){P.bob+=dt*(P.sprinting?11:7.5);P.stepD+=sp*len*dt;if(P.stepD>(P.sprinting?1.5:1.9)){P.stepD=0;noise(.1,240,P.sprinting?.22:.1)}}
  if(P.flash){P.bat-=dt*.55;if(P.bat<=0){P.bat=0;P.flash=false;msg('Flashlight died. Find batteries.',3500);tone(200,.5,'sine',.15,-100)}}
- for(const b of BAT)if(!b.got&&Math.hypot(b.x-P.x,b.z-P.z)<.8){b.got=true;b.m.visible=false;P.bat=Math.min(100,P.bat+35);tone(900,.15,'sine',.12);tone(1300,.2,'sine',.1,0,.1);msg('Battery found.',1800)}}
+ for(const b of BAT)if(!b.got&&Math.hypot(b.x-P.x,b.z-P.z)<.8){b.got=true;b.m.visible=false;P.bat=Math.min(100,P.bat+35);tone(900,.15,'sine',.12);tone(1300,.2,'sine',.1,0,.1);S.st.batt++;msg('Battery found.',1800)}
+ for(const b of BOT)if(!b.got&&Math.hypot(b.x-P.x,b.z-P.z)<.8){b.got=true;b.m.visible=false;P.bottles=Math.min(4,P.bottles+1);tone(700,.1,'triangle',.1);tone(1000,.15,'triangle',.08,0,.08);msg('Bottle. Press '+(coarse?'THROW':'Q')+' to throw it and lure the thing away.',3000)}}
 
 /* ---------- game flow ---------- */
 function msg(s,ms=4500){const m=$('msg');m.textContent=s;m.style.opacity=1;clearTimeout(msg.h);msg.h=setTimeout(()=>m.style.opacity=0,ms)}
 function lockPtr(){if(!coarse&&ren.domElement.requestPointerLock){try{const p=ren.domElement.requestPointerLock();p&&p.catch&&p.catch(()=>{})}catch(e){}}}
 function goFull(){if(!coarse)return;const f=document.documentElement;try{f.requestFullscreen&&f.requestFullscreen().catch(()=>{});screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}try{window.Capacitor.Plugins.StatusBar.hide()}catch(e){}}
 function show(a,b,c,sub){const s=$('scr');s.classList.remove('hide');s.innerHTML=`<h1>${a}</h1>${sub?`<h2>${sub}</h2>`:''}<p>${b}</p><button id="go">${c}</button>`;$('go').onclick=()=>{audio();goFull();reset();lockPtr()}}
-function reset(){Object.assign(S,{t:0,running:true,over:false,paused:false,exitOpen:false,hr:0,dd:0,hint:{},amb:10});
- Object.assign(P,{x:3.5,z:5.5,yaw:Math.PI,pitch:0,hide:null,stam:1,tired:false,flash:false,bat:100,breath:1,holding:false,sprinting:false,moving:false,noise:0,stepD:0});
+function reset(){Object.assign(S,{t:0,running:true,over:false,paused:false,exitOpen:false,hr:0,dd:0,hint:{},amb:10,st:{batt:0,thrown:0,hides:0}});
+ Object.assign(P,{x:3.5,z:5.5,yaw:Math.PI,pitch:0,hide:null,stam:1,tired:false,flash:false,bat:100,breath:1,holding:false,sprinting:false,moving:false,noise:0,stepD:0,bottles:2});
  Object.assign(C,{x:26.5,z:4.5,face:Math.PI,st:'patrol',alert:0,tx:-1,fl:null,wx:null,ls:null,q:[],waiting:0,opening:false,room:'l',ping:20,noiseCd:0,moved:0});
- Object.assign(FS,{at:0,ph:'dorm',t:0,r:0,cool:18,reloc:20});BAT.forEach(b=>{b.got=false;b.m.visible=true});
+ Object.assign(FS,{at:0,ph:'dorm',t:0,r:0,cool:18,reloc:20});BAT.forEach(b=>{b.got=false;b.m.visible=true});BOT.forEach(b=>{b.got=false;b.m.visible=true});
  exitL.color.setHex(0xff3322);cm.visible=false;$('slats').style.display='none';$('bH').style.display='none';$('scr').classList.add('hide');$('js').className='';
- msg(coarse?'Left thumb: move. Right thumb: look. ACT near a closet to hide.':'WASD move · mouse look · Shift run · F flashlight · E interact',6500)}
+ msg(coarse?'Left thumb: move. Right thumb: look. ACT near a closet to hide.':'WASD move · mouse look · Shift run · F flashlight · E interact · Q throw bottle',6500)}
+const fmt=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
+function statLine(win){const best=+store.get('l6h2_best')||0;if(!win&&S.t>best)store.set('l6h2_best',S.t|0);let w=+store.get('l6h2_wins')||0;if(win){w++;store.set('l6h2_wins',w)}
+ return `<small style="opacity:.6">${win?'Escaped':'Survived'} ${fmt(S.t)} · Longest night ${fmt(Math.max(best,win?360:S.t))} · Batteries ${S.st.batt} · Bottles thrown ${S.st.thrown} · Closets ${S.st.hides}${w?' · Escapes '+w:''}</small>`}
 function die(why){if(S.over)return;S.over=true;S.running=false;P.hide=null;$('slats').style.display='none';document.exitPointerLock&&document.exitPointerLock();
- const fish=why=='fish';$('js').className='on'+(fish?' fish':'');
+ const fish=why=='fish',stat=statLine(false);$('js').className='on'+(fish?' fish':'');
  tone(300,1.3,'sawtooth',.4,900);tone(311,1.3,'sawtooth',.3,880);noise(1.3,4000,.6);
- setTimeout(()=>{$('js').className='';show('YOU DIED',{creature:'The thing in the dark caught you.',closet:'It opened the closet door.',fish:'Something dragged you down into the plumbing.'}[why]||'It got you.','TRY AGAIN')},1500)}
-function win(){S.running=false;S.over=true;document.exitPointerLock&&document.exitPointerLock();tone(880,2.2,'sine',.25);tone(1320,2.6,'sine',.15,0,.3);show('YOU ESCAPED','The door slams shut behind you. Morning light. Whatever lives in that house stays inside... for now.','PLAY AGAIN')}
+ setTimeout(()=>{$('js').className='';show('YOU DIED',{creature:'The thing in the dark caught you.',closet:'It opened the closet door.',fish:'Something dragged you down into the plumbing.'}[why]||'It got you.'+'<br><br>'+stat,'TRY AGAIN')},1500)}
+function win(){S.running=false;S.over=true;document.exitPointerLock&&document.exitPointerLock();tone(880,2.2,'sine',.25);tone(1320,2.6,'sine',.15,0,.3);show('YOU ESCAPED','The door slams shut behind you. Morning light. Whatever lives in that house stays inside... for now.<br><br>'+statLine(true),'PLAY AGAIN')}
 function tick(dt){
  S.t+=dt;S.dd=Math.min(1,S.t/360);const h=Math.min(6,S.t/60|0);
  if(h>S.hr){S.hr=h;if(h<6){tone(520,1.2,'sine',.15);msg(HL[h]+' — it is getting worse...',3500)}}
  if(S.t>=360&&!S.exitOpen){S.exitOpen=true;exitL.color.setHex(0x33ff66);msg('6 AM — the front door is unlocked at the end of the hall. GET OUT!',9000);tone(880,1.5,'sine',.25);tone(1100,1.5,'sine',.15,0,.2)}
- if(drone)drone.gain.value=.03+.08*S.dd;
+ if(drone)drone.gain.value=.03+.08*S.dd+.05*(S.danger||0);
  playerTick(dt);if(S.over)return;
  if(S.t>22){cm.visible=true;creatureTick(dt);if(S.over)return}
  fishTick(dt);if(S.over)return;
  if(S.exitOpen&&!P.hide&&P.x>29.3)return win();
- S.amb-=dt;if(S.amb<=0){S.amb=R(9,22)*(1-.4*S.dd);const a=R(0,TAU),r=R(6,16),x=P.x+Math.cos(a)*r,z=P.z+Math.sin(a)*r,s=spat(x,z);if(Math.random()<.5)noise(.15,200,.4*s.v+.04,0,s.pan);else tone(R(180,260),.5,'sawtooth',.05*s.v+.01,-80,0,s.pan)}
+ S.amb-=dt;if(S.amb<=0){S.amb=R(9,22)*(1-.4*S.dd);const a=R(0,TAU),r=R(6,16),x=P.x+Math.cos(a)*r,z=P.z+Math.sin(a)*r,s=spat(x,z);const q=Math.random();if(q<.35)noise(.15,200,.4*s.v+.04,0,s.pan);else if(q<.65)tone(R(180,260),.5,'sawtooth',.05*s.v+.01,-80,0,s.pan);else{tone(R(90,140),.9,'sawtooth',.06*s.v+.015,R(-40,40),0,s.pan);noise(.5,300,.05*s.v+.01,0,s.pan)}}
+ if(!S.hint.q&&S.t>45){S.hint.q=1;msg(P.bottles?(coarse?'THROW a bottle to draw it away from you.':'Press Q to throw a bottle. The thing will go to the noise.'):'Find bottles. Throwing one draws it away.',6000)}
  if(!S.hint.a&&S.t>12){S.hint.a=1;msg('Find closets to hide in. Batteries glow faintly. Stay clear of sinks, toilets and tubs.',6500)}
  /* danger overlay + heartbeat */
  let d=Math.max(C.st=='hunt'?clamp(1-Math.hypot(P.x-C.x,P.z-C.z)/14,.25,1):0,C.alert*.35,(FS.ph=='stir'||FS.ph=='rise'||FS.ph=='lunge')?.7:0);
  S.danger=(S.danger||0)+(d-(S.danger||0))*Math.min(1,dt*3);
  if(S.danger>.12){S.hb=(S.hb||0)-dt;if(S.hb<=0){tone(60,.15,'sine',.35*S.danger,-20);tone(60,.15,'sine',.25*S.danger,-20,.18);S.hb=1.1-.6*S.danger}}}
-function hud(){$('clock').textContent=HL[Math.min(6,S.t/60|0)];$('bat').firstChild.style.width=P.bat+'%';$('sta').firstChild.style.width=P.stam*100+'%';
+function hud(){$('clock').textContent=HL[Math.min(6,S.t/60|0)];$('bat').firstChild.style.width=P.bat+'%';$('sta').firstChild.style.width=P.stam*100+'%';$('botl').textContent='BOTTLES: '+P.bottles;
  const row=G[Math.floor(P.z)],c=row&&row[Math.floor(P.x)];$('room').textContent=NAMES[c]||'';
  const n=S.running?nearest():null,p=$('prompt');if(n){p.textContent=(coarse?'':'[E] ')+(n.t=='exit'?'Leave closet':'Hide');p.style.opacity=1}else p.style.opacity=0;
  $('red').style.opacity=Math.min(.75,(S.danger||0)*.8)}
 
 /* ---------- input ---------- */
 const T={move:null,look:null};
-addEventListener('keydown',e=>{K[e.code]=true;if(e.repeat||!S.running)return;if(e.code=='KeyF')setFlash(!P.flash);else if(e.code=='KeyE')interact();else if(e.code=='Space'){e.preventDefault();I.breath=true}});
+addEventListener('keydown',e=>{K[e.code]=true;if(e.repeat||!S.running)return;if(e.code=='KeyF')setFlash(!P.flash);else if(e.code=='KeyE')interact();else if(e.code=='KeyQ')throwBottle();else if(e.code=='Space'){e.preventDefault();I.breath=true}});
 addEventListener('keyup',e=>{K[e.code]=false;if(e.code=='Space')I.breath=false});
 document.addEventListener('mousemove',e=>{if(document.pointerLockElement&&S.running&&!S.paused)look(e.movementX,e.movementY,.0022)});
 document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&S.running&&!coarse){S.paused=true;I.mx=I.mz=0;show('PAUSED','Click to resume.','RESUME');$('go').onclick=()=>{$('scr').classList.add('hide');S.paused=false;lockPtr()}}});
@@ -274,6 +313,7 @@ addEventListener('pointerup',up);addEventListener('pointercancel',up);
 const hold=(id,k)=>{const b=$(id),u=()=>{I[k]=false;b.classList.remove('on')};b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();I[k]=true;b.classList.add('on')});b.addEventListener('pointerup',u);b.addEventListener('pointercancel',u);b.addEventListener('pointerleave',u)};
 hold('bS','sprint');hold('bH','breath');
 $('bF').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(S.running)setFlash(!P.flash)});
+$('bT').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();throwBottle()});
 $('bA').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();interact()});
 if(coarse)document.body.classList.add('t');
 addEventListener('resize',()=>{ren.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()});
@@ -287,14 +327,14 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/
  if(S.running){syncCreature(dt);syncFish()}
  camera.position.set(P.x,1.55+(P.hide?0:Math.sin(P.bob)*.035*(P.moving?1:0)),P.z);camera.rotation.set(P.pitch,P.yaw,0);
  fl.intensity=P.flash&&P.bat>0?(P.bat<15&&Math.random()<.25?.4:3.2):0;
- amb.intensity=BR[S.bright]*(Math.random()<(.002+.02*S.dd)?.2:1);
+ const cd=cm.visible?Math.hypot(P.x-C.x,P.z-C.z):99;amb.intensity=BR[S.bright]*(Math.random()<(.002+.02*S.dd+(cd<9?.07*(1-cd/9):0))?.2:1);
  ren.render(scene,camera)}
 
 /* ---------- updates (served from the update server) ---------- */
-let VER=null;const getVer=async()=>{try{const r=await fetch('version.json',{cache:'no-store'});return r.ok?(await r.json()).version:null}catch(e){return null}};
+let VER=null;const getVer=async()=>{if(location.protocol=='file:')return null;try{const r=await fetch('version.json',{cache:'no-store'});return r.ok?(await r.json()).version:null}catch(e){return null}};
 getVer().then(v=>{VER=v;$('ver').textContent=v?'build '+v:'offline build'});
 setInterval(async()=>{if(S.running&&!S.over)return;const v=await getVer();if(v&&VER&&v!==VER){$('ver').textContent='updating...';setTimeout(()=>location.reload(),500)}},30000);
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&!(location.hostname=='localhost'&&!location.port))navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 requestAnimationFrame(loop);
-show('THE LAST 6 HOURS','You survived the bathroom. Now the whole house is yours — and so is everything in it. Hide in closets when the thing in the dark comes looking. Stay away from sinks, toilets and tubs: something lives in the pipes. Survive until 6 AM, then reach the front door.','BEGIN','PART 2 · THE HOUSE');
+show('THE LAST 6 HOURS','You survived the bathroom. Now the whole house is yours — and so is everything in it. Hide in closets when the thing in the dark comes looking. Throw bottles (Q) to pull it away from you. Stay away from sinks, toilets and tubs: something lives in the pipes. Survive until 6 AM, then reach the front door.','BEGIN','PART 2 · THE HOUSE');
