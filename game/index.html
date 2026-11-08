@@ -65,6 +65,8 @@ body.t #tc{display:block}
 .menu dl{margin:0 0 20px;max-width:56ch}.menu dt{color:#e9e4d8;margin-top:12px}.menu dd{margin:4px 0 0;color:#9a948a;line-height:1.5}
 .menu label{color:#cfc9bc}.menu input[type=range]{width:min(320px,70vw);accent-color:#8a1c1c;margin-top:10px}
 @media (max-height:520px){.menu h1{font-size:clamp(40px,17vh,70px)}.menu .tag{margin-bottom:12px}.menu nav button,.menu .bk{font-size:17px;padding:3px 0}.menu .meta{margin-top:12px}.menu dl{font-size:12px;margin-bottom:6px}.menu dt{margin-top:6px}}
+#exitd{position:fixed;top:46px;left:50%;transform:translateX(-50%);color:#7f7;font:20px 'Special Elite','Courier New',monospace;text-shadow:0 0 8px #0f0;z-index:22;display:none;pointer-events:none}
+body.jx #exitd,body.inm #exitd{display:none!important}
 .hide{display:none!important}
 </style></head><body>
 <div id="vig" class="o"></div><div id="red" class="o"></div><div id="slats" class="o"></div><div id="cross"></div>
@@ -74,7 +76,7 @@ body.t #tc{display:block}
 <div id="tc"><div id="joy"><div id="knob"></div></div>
 <div class="b" id="bF">LIGHT</div><div class="b" id="bS">RUN</div><div class="b" id="bA">ACT</div><div class="b" id="bT">THROW</div><div class="b" id="bH">HOLD<br>BREATH</div></div>
 <div id="rot">Rotate your device to landscape to play.</div>
-<div id="js"></div>
+<div id="exitd"></div><div id="js"></div>
 <div id="scr" class="scr"></div>
 <div id="ver"></div>
 <script src="three.min.js"></script>
