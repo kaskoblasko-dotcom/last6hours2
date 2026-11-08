@@ -15,12 +15,12 @@ const tests=`
  // 1. map sanity
  let walk=0;for(let z=0;z<H;z++)for(let x=0;x<W;x++)if(!solid(x,z))walk++;
  const f=flow(3,5);let reach=0;for(let i=0;i<W*H;i++)if(f[i]>=0)reach++;
- console.log('walkable tiles',walk,'reachable from bathroom',reach);
+ console.log('walkable tiles',walk,'reachable from bathroom',reach);if(reach!==walk){const o=[];for(let z=0;z<H;z++)for(let x=0;x<W;x++)if(!solid(x,z)&&f[z*W+x]<0)o.push(x+','+z+':'+G[z][x]);console.log('UNREACHABLE',o.join(' '))}
  if(reach!==walk)fail('map not fully connected ('+reach+'/'+walk+')');
  for(const w of WARD)if(solid(w.tileX,w.tileZ)||f[w.tileZ*W+w.tileX]<0)fail('ward front blocked '+w.x+','+w.z);
  for(const b of BAT)if(solid(b.x|0,b.z|0))fail('battery in solid');
  if(solid(3,5)||blockedAt(P.x,P.z,.28))fail('player spawn blocked');
- S.exitOpen=true;if(flow(28,8)[8*W+29]<0)fail('exit unreachable when open');S.exitOpen=false;
+ S.exitOpen=true;if(flow(62,26)[26*W+63]<0)fail('exit unreachable when open');S.exitOpen=false;
  console.log('wardrobes',WARD.length,'water points',WP.length,'batteries',BAT.length);
  // 2. full-night simulation with a wandering bot
  const pick=a=>a[Math.random()*a.length|0];const stats={};let deaths=[];
@@ -34,12 +34,12 @@ const tests=`
    if(!P.hide){P.yaw=bot.dir;I.mz=1;I.mx=0;I.sprint=C.st=='hunt';
     if(Math.random()<dt*.5){const n=nearest();if(n&&n.t=='hide'&&Math.random()<.5)enterHide(n.w)}
     if(S.exitOpen){// run for the door
-      P.yaw=Math.atan2(-(29.6-P.x),-(8.9-P.z)); }
+      P.yaw=Math.atan2(-(EX.x-P.x),-(EX.z-P.z)); }
    }else{I.breath=C.st=='queue';if(Math.random()<dt*.15)exitHide()}
    tick(dt);syncCreature(dt);syncFish();
    seen[C.st]=1;seen['fish_'+FS.ph]=1;
   }
-  const res=S.over?(S.exitOpen&&P.x>29.3?'win':'dead'):'timeout';
+  const res=S.over?(S.exitOpen&&P.x>W-.7?'win':'dead'):'timeout';
   deaths.push(res+'@'+t.toFixed(0));
   Object.keys(seen).forEach(k=>stats[k]=(stats[k]||0)+1);
  }
@@ -52,7 +52,7 @@ const tests=`
  enterHide(w);if(!P.hide||solid(Math.floor(P.x),Math.floor(P.z))===false)fail('hide state');
  exitHide();if(solid(Math.floor(P.x),Math.floor(P.z)))fail('exit placed player in solid');
  // 4. escape
- reset();S.t=361;S.exitOpen=true;P.x=29.5;P.z=8.5;let won=false;const rw=win;
+ reset();S.t=361;S.exitOpen=true;P.x=W-1.5;P.z=27;let won=false;const rw=win;
 
  // 5. queue logic: creature loses sight, player hides unseen -> search -> outcomes
  let outcomes={dead:0,survived:0,skipped:0};
