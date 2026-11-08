@@ -30,15 +30,24 @@ const gurgle=(x,z,k=1)=>{const s=spat(x,z);for(let i=0;i<4;i++)tone(R(150,260),.
 const thud=(x,z,v=.5)=>{const s=spat(x,z);noise(.12,260,v*s.v,0,s.pan);tone(80,.14,'square',.15*s.v,0,0,s.pan)};
 
 /* ---------- map ---------- */
-const W=30,H=20,G=Array.from({length:H},()=>Array(W).fill('#'));
+const W=64,H=44,G=Array.from({length:H},()=>Array(W).fill('#'));
 const rect=(c,x0,z0,x1,z1)=>{for(let z=z0;z<=z1;z++)for(let x=x0;x<=x1;x++)G[z][x]=c};
-rect('b',1,1,5,6);rect('1',7,1,12,6);rect('m',14,1,21,6);rect('l',23,1,28,6);
-rect('h',1,8,28,9);rect('k',1,11,9,18);rect('v',11,11,22,18);rect('s',24,11,28,18);
-rect('h',3,7,3,7);rect('h',9,7,10,7);rect('h',16,7,17,7);rect('h',24,7,25,7);
-rect('h',5,10,6,10);rect('h',15,10,17,10);rect('h',26,10,27,10);rect('h',10,14,10,15);rect('h',23,14,23,15);
-rect('X',29,8,29,9);
-const NAMES={b:'BATHROOM','1':'BEDROOM',m:'MASTER BEDROOM',l:'LAUNDRY ROOM',h:'HALLWAY',k:'KITCHEN',v:'LIVING ROOM',s:"KID'S ROOM",X:'FRONT DOOR'};
-const TINT={b:0xaab8b4,'1':0x7a5f6a,m:0x6a5a7a,l:0x8a8f8a,h:0x6e6a5e,k:0x9a9a88,v:0x6a5848,s:0x5a6e7a,X:0x6e6a5e};
+/* THE HOUSE (64x44): north wing of bedrooms / study / library, two long halls, a middle floor with kitchen, living, grand foyer, dining, kids' rooms, and a south wing of cellar, garage, workshop and boiler room */
+rect('b',1,1,6,6);rect('1',8,1,13,6);rect('o',15,1,20,6);rect('y',22,1,32,6);rect('m',34,1,44,6);rect('B',46,1,51,6);rect('l',53,1,62,6);
+rect('h',1,8,62,9);
+rect('k',1,11,12,24);rect('v',14,11,24,24);rect('f',26,11,37,24);rect('d',39,11,49,24);rect('s',51,11,62,17);rect('n',51,19,62,24);
+rect('h',1,26,62,27);
+rect('c',1,29,20,42);rect('g',22,29,40,42);rect('w',42,29,52,42);rect('r',54,29,62,42);
+/* doorways hall <-> rooms */
+for(const[x0,x1]of[[3,4],[10,11],[17,18],[26,28],[38,39],[48,49],[57,58]])rect('h',x0,7,x1,7);
+for(const[x0,x1]of[[5,6],[18,19],[30,33],[44,45],[56,57]]){rect('h',x0,10,x1,10);rect('h',x0,25,x1,25)}
+for(const[x0,x1]of[[4,5],[15,16],[30,31],[46,47],[57,58]])rect('h',x0,28,x1,28);
+/* doors between neighbouring rooms (these make loops to run around) */
+for(const[x,z]of[[7,3],[14,3],[21,3],[33,3],[45,3],[52,3],[13,18],[25,14],[25,21],[38,14],[38,21],[50,14],[50,22],[56,18],[21,35],[41,35],[53,35]])rect('h',x,z,x,z);
+rect('X',63,26,63,27);
+const NAMES={b:'BATHROOM','1':'BEDROOM',o:'STUDY',y:'LIBRARY',m:'MASTER BEDROOM',B:'ENSUITE',l:'LAUNDRY ROOM',h:'HALLWAY',k:'KITCHEN',v:'LIVING ROOM',f:'GRAND FOYER',d:'DINING ROOM',s:"KID'S ROOM",n:'PLAYROOM',c:'CELLAR',g:'GARAGE',w:'WORKSHOP',r:'BOILER ROOM',X:'FRONT DOOR'};
+const TINT={b:0xaab8b4,'1':0x7a5f6a,o:0x6a5e48,y:0x5a4a38,m:0x6a5a7a,B:0xa8b8b4,l:0x8a8f8a,h:0x6e6a5e,k:0x9a9a88,v:0x6a5848,f:0x5e5a66,d:0x7a6252,s:0x5a6e7a,n:0x6a7a5a,c:0x4a4a4a,g:0x5a5a5e,w:0x6a5a40,r:0x4e5656,X:0x6e6a5e};
+const START={x:3.5,z:5.5},EX={x:W-.4,z:27};
 const PB=new Uint8Array(W*H);
 const solid=(x,z)=>{if(x<0||z<0||x>=W||z>=H)return true;const c=G[z][x];return c=='#'||(c=='X'&&!S.exitOpen)||PB[z*W+x]==1};
 const wallAt=(x,z)=>x<0||z<0||x>=W||z>=H||G[z][x]=='#'||(G[z][x]=='X'&&!S.exitOpen);
@@ -51,12 +60,13 @@ function flow(tx,tz){const d=new Int16Array(W*H).fill(-1),q=[tz*W+tx];d[q[0]]=0;
 /* ---------- three.js ---------- */
 const ren=new THREE.WebGLRenderer({antialias:!coarse});ren.setSize(innerWidth,innerHeight);ren.setPixelRatio(Math.min(devicePixelRatio||1,coarse?1.5:2));ren.domElement.id='gl';document.body.prepend(ren.domElement);
 const scene=new THREE.Scene();scene.background=new THREE.Color(0);scene.fog=new THREE.FogExp2(0,.08);
-const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.05,40);camera.rotation.order='YXZ';scene.add(camera);
+const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.05,90);camera.rotation.order='YXZ';scene.add(camera);
 const BR=[.16,.3,.55],amb=new THREE.AmbientLight(0x556677,BR[S.bright]);scene.add(amb);
 const fl=new THREE.SpotLight(0xfff2d0,0,18,.45,.5,1.1);fl.position.set(.12,-.1,0);camera.add(fl);
 const tg=new THREE.Object3D();tg.position.set(0,0,-1);camera.add(tg);fl.target=tg;
 camera.add(new THREE.PointLight(0x8899aa,.5,6,1.4));
-const exitL=new THREE.PointLight(0xff3322,.9,6,1.5);exitL.position.set(28.4,2.2,9);scene.add(exitL);
+const exitL=new THREE.PointLight(0xff3322,1.2,9,1.5);exitL.position.set(W-1.6,2.2,27);scene.add(exitL);
+const exitSign=new THREE.Mesh(new THREE.BoxGeometry(.1,.55,2.6),new THREE.MeshBasicMaterial({color:0xff3322,fog:false}));exitSign.position.set(W-.06,2.55,27);scene.add(exitSign);
 
 function ctex(draw){const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');draw(g);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t}
 const floorT=ctex(g=>{g.fillStyle='#bbb';g.fillRect(0,0,128,128);for(let i=0;i<500;i++){g.fillStyle=`rgba(0,0,0,${Math.random()*.14})`;g.fillRect(Math.random()*128,Math.random()*128,2,2)}g.strokeStyle='#0005';g.lineWidth=3;g.strokeRect(0,0,128,128)});
@@ -74,7 +84,7 @@ const mats={},L=c=>mats[c]||(mats[c]=new THREE.MeshLambertMaterial({color:c}));
  const wm=new THREE.InstancedMesh(new THREE.BoxGeometry(1,2.8,1),new THREE.MeshLambertMaterial({map:wallT}),wl.length);
  wl.forEach(([x,z],i)=>{let c='h';out:for(const[dx,dz]of DIRS){const a=G[z+dz]&&G[z+dz][x+dx];if(a&&a!='#'){c=a;break out}}dm.position.set(x+.5,1.4,z+.5);dm.updateMatrix();wm.setMatrixAt(i,dm.matrix);col.setHex(TINT[c]).multiplyScalar(1.2);wm.setColorAt(i,col)});wm.instanceColor.needsUpdate=true;scene.add(wm);
  const ce=new THREE.Mesh(new THREE.PlaneGeometry(W,H).rotateX(Math.PI/2),L(0x1a1a1a));ce.position.set(W/2,2.8,H/2);scene.add(ce);
- const ed=new THREE.Mesh(new THREE.BoxGeometry(.1,2.2,2),new THREE.MeshLambertMaterial({color:0x5a1a10}));ed.position.set(29.95,1.1,9);scene.add(ed);
+ const ed=new THREE.Mesh(new THREE.BoxGeometry(.1,2.2,2),new THREE.MeshLambertMaterial({color:0x5a1a10}));ed.position.set(W-.05,1.1,27);scene.add(ed);
 }
 /* furniture, closets, water */
 function Fu(x,z,w,d,h,c){const m=new THREE.Mesh(new THREE.BoxGeometry(w-.14,h,d-.14),L(c));m.position.set(x+w/2,h/2,z+d/2);scene.add(m);for(let j=0;j<d;j++)for(let i=0;i<w;i++)PB[(z+j)*W+x+i]=1;return m}
@@ -87,20 +97,31 @@ const WP=[];
 function wpoint(x,z,y,kind,r){const m=new THREE.Mesh(new THREE.CircleGeometry(r,18),new THREE.MeshLambertMaterial({color:0x06121a}));m.rotation.x=-Math.PI/2;m.position.set(x,y+.01,z);scene.add(m);
  const ring=new THREE.Mesh(new THREE.RingGeometry(.1,.14,24),new THREE.MeshBasicMaterial({color:0x66ffaa,transparent:true,opacity:0}));ring.rotation.x=-Math.PI/2;ring.position.set(x,y+.02,z);scene.add(ring);WP.push({x,z,y,kind,ring})}
 /* bathroom */ Fu(1,2,1,3,.6,0xc8c8c0);wpoint(1.5,3.5,.62,'tub',.4);Fu(5,1,1,1,.42,0xe0e0e0);wpoint(5.5,1.5,.43,'toilet',.16);Fu(3,1,1,1,.85,0xb9b0a0);wpoint(3.5,1.5,.86,'sink',.16);ward(5,6,'w');
-/* bedroom */ Fu(8,1,2,2,.5,0x6a4a5a);Fu(7,4,1,2,.8,0x4a3a2a);Fu(7,1,1,1,.5,0x4a3a2a);ward(12,1,'w');
-/* master */ Fu(16,1,3,3,.5,0x5a4a6a);Fu(21,4,1,2,.9,0x4a3a2a);ward(14,1,'e');ward(21,1,'w');
-/* laundry */ Fu(23,1,1,1,.95,0xdddddd);wpoint(23.5,1.5,.96,'drain',.2);Fu(24,1,1,1,.95,0xcccccc);Fu(27,1,2,1,.9,0x8a8f8a);wpoint(28,1.5,.91,'sink',.2);Fu(28,3,1,3,1.6,0x3a3a30);ward(23,5,'e');
-/* hall */ ward(1,8,'e');ward(20,8,'s');
-/* kitchen */ Fu(1,12,1,5,.9,0x8a7a62);wpoint(1.5,13.5,.91,'sink',.22);Fu(1,17,1,1,1.8,0xdddddd);Fu(5,14,2,2,.78,0x6a4a2a);ward(9,18,'n');
-/* living */ Fu(14,16,4,1,.8,0x4a3a3a);Fu(15,14,2,1,.4,0x3a2a1a);Fu(14,18,4,1,.7,0x151515);Fu(22,11,1,3,1.8,0x3a2a1a);Fu(20,15,1,1,.8,0x4a4a3a);ward(11,11,'e');ward(22,18,'w');
-/* kid's room */ Fu(27,17,2,2,.5,0x4a5a6a);Fu(24,12,1,2,.8,0x4a3a2a);Fu(24,17,1,1,.5,0x6a3a3a);ward(28,11,'s');
+/* bedroom */ Fu(9,1,2,2,.5,0x6a4a5a);Fu(8,4,1,2,.8,0x4a3a2a);ward(13,1,'w');
+/* study */ Fu(16,1,3,1,.75,0x3a2a1a);Fu(20,4,1,2,1.8,0x2a1f16);ward(15,6,'e');ward(20,1,'w');
+/* library */ Fu(24,1,1,3,1.9,0x2a1f16);Fu(24,5,1,2,1.9,0x2a1f16);Fu(27,1,1,3,1.9,0x2a1f16);Fu(30,2,1,4,1.9,0x2a1f16);Fu(28,4,2,1,.75,0x3a2a1a);ward(22,6,'e');ward(32,1,'w');
+/* master */ Fu(36,1,3,3,.5,0x5a4a6a);Fu(35,1,1,1,.5,0x4a3a2a);Fu(39,1,1,1,.5,0x4a3a2a);Fu(43,2,1,3,.9,0x4a3a2a);ward(34,6,'e');ward(44,1,'w');
+/* ensuite */ Fu(50,1,1,3,.6,0xc8c8c0);wpoint(50.5,2.5,.62,'tub',.4);Fu(46,1,1,1,.42,0xe0e0e0);wpoint(46.5,1.5,.43,'toilet',.16);Fu(48,1,1,1,.85,0xb9b0a0);wpoint(48.5,1.5,.86,'sink',.16);ward(51,6,'w');
+/* laundry */ Fu(54,1,1,1,.95,0xdddddd);wpoint(54.5,1.5,.96,'drain',.2);Fu(55,1,1,1,.95,0xcccccc);Fu(58,1,2,1,.9,0x8a8f8a);wpoint(59,1.5,.91,'sink',.2);Fu(62,3,1,3,1.6,0x3a3a30);ward(54,6,'e');ward(62,1,'w');
+/* north hall */ ward(1,8,'e');ward(30,8,'s');ward(46,9,'n');ward(62,9,'w');
+/* kitchen */ Fu(1,12,1,6,.9,0x8a7a62);wpoint(1.5,13.5,.91,'sink',.22);Fu(1,19,1,1,1.8,0xdddddd);Fu(1,22,1,2,.9,0x8a8a8a);Fu(5,14,3,2,.78,0x6a4a2a);Fu(8,20,3,2,.75,0x4a3a2a);ward(12,11,'w');ward(12,24,'n');
+/* living */ Fu(16,19,4,1,.8,0x4a3a3a);Fu(17,17,2,1,.4,0x3a2a1a);Fu(16,14,4,1,.7,0x151515);Fu(24,11,1,3,1.8,0x3a2a1a);Fu(20,22,1,1,.8,0x4a4a3a);ward(14,11,'e');ward(24,24,'w');
+/* grand foyer */ Fu(29,14,1,1,2.6,0x5a5a60);Fu(34,14,1,1,2.6,0x5a5a60);Fu(29,21,1,1,2.6,0x5a5a60);Fu(34,21,1,1,2.6,0x5a5a60);Fu(31,17,2,2,.7,0x3a2a1a);ward(26,11,'e');ward(37,11,'w');ward(26,24,'e');
+/* dining */ Fu(42,15,5,3,.75,0x3a2a1a);Fu(49,16,1,4,1.2,0x2a1f16);ward(39,11,'e');ward(49,24,'w');
+/* kid's room */ Fu(60,12,2,2,.5,0x4a5a6a);Fu(52,11,2,1,.6,0x6a3a3a);Fu(62,16,1,2,.8,0x4a3a2a);ward(51,17,'e');ward(62,11,'s');
+/* playroom */ Fu(62,19,1,3,1.0,0x4a3a2a);Fu(58,20,2,2,.9,0x6a4a3a);Fu(52,23,2,1,.4,0x4a5a6a);ward(51,19,'e');ward(62,24,'w');
+/* south hall */ ward(1,27,'e');ward(20,27,'n');ward(40,26,'s');ward(60,26,'s');
+/* cellar */ Fu(1,30,1,5,1.9,0x3a3026);Fu(1,37,1,5,1.9,0x3a3026);Fu(4,32,2,2,.9,0x5a4a30);Fu(8,30,1,5,1.9,0x3a3026);Fu(8,38,1,5,1.9,0x3a3026);Fu(11,34,4,1,.9,0x5a4a30);Fu(11,38,3,2,.9,0x5a4a30);Fu(14,31,2,1,.9,0x5a4a30);Fu(17,31,1,4,1.9,0x3a3026);Fu(17,38,1,4,1.9,0x3a3026);wpoint(18.5,41.5,.01,'drain',.25);ward(1,29,'e');ward(20,42,'w');ward(6,42,'n');
+/* garage */ Fu(24,31,3,6,1.2,0x2a3038);Fu(34,31,3,6,1.2,0x3a2a2a);Fu(22,41,6,1,1.8,0x3a3026);Fu(31,40,3,2,.9,0x4a4038);Fu(37,41,3,1,.9,0x8a8a80);wpoint(38.5,41.5,.91,'sink',.2);ward(22,29,'e');ward(40,42,'w');ward(30,42,'n');
+/* workshop */ Fu(43,30,6,1,.9,0x4a3a20);Fu(43,40,6,1,.9,0x4a3a20);Fu(50,31,2,4,1.0,0x4a3a20);Fu(46,37,2,2,1.0,0x5a5a5a);Fu(52,38,1,4,1.8,0x3a3026);ward(42,29,'e');ward(52,29,'w');
+/* boiler room */ Fu(60,30,3,3,1.8,0x4a4a40);Fu(54,30,1,4,1.9,0x3a3a36);Fu(54,37,1,5,1.9,0x3a3a36);Fu(57,36,2,2,1.5,0x5a5a50);Fu(60,38,2,3,1.5,0x5a5a50);wpoint(56.5,32.5,.01,'drain',.25);wpoint(58.5,40.5,.01,'drain',.25);ward(62,35,'w');ward(56,29,'e');
 const RT={};for(let z=0;z<H;z++)for(let x=0;x<W;x++){const c=G[z][x];if(c!='#'&&c!='X'&&!solid(x,z))(RT[c]=RT[c]||[]).push([x,z])}
 const RK=Object.keys(RT);
 
 /* batteries */
-const BAT=[];{const spots=[[4.5,5.5],[11.5,5.5],[19.5,5.5],[26.5,5.5],[12.5,8.5],[22.5,9.5],[4.5,12.5],[8.5,17.5],[19.5,17.5],[13.5,12.5],[25.5,16.5]].filter(([x,z])=>!solid(x|0,z|0));
+const BAT=[];{const spots=[[4.5,5.5],[10.5,3.5],[18.5,5.5],[26.5,4.5],[40.5,5.5],[49.5,5.5],[58.5,4.5],[10.5,8.5],[30.5,9.5],[50.5,9.5],[8.5,12.5],[20.5,16.5],[31.5,20.5],[44.5,19.5],[55.5,14.5],[58.5,22.5],[12.5,22.5],[15.5,26.5],[45.5,27.5],[10.5,36.5],[18.5,33.5],[30.5,36.5],[38.5,32.5],[47.5,34.5],[58.5,33.5],[24.5,9.5],[36.5,22.5],[60.5,27.5]].filter(([x,z])=>!solid(x|0,z|0));
  const geo=new THREE.CylinderGeometry(.05,.05,.17,8),mat=new THREE.MeshBasicMaterial({color:0xffcc33});
- spots.sort(()=>Math.random()-.5).slice(0,8).forEach(([x,z])=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,.1,z);m.rotation.z=1.57;scene.add(m);BAT.push({x,z,m,got:false})})}
+ spots.sort(()=>Math.random()-.5).slice(0,15).forEach(([x,z])=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,.1,z);m.rotation.z=1.57;scene.add(m);BAT.push({x,z,m,got:false})})}
 
 /* monsters */
 function mkNess(par){const g=new THREE.Group(),sk=SM(0x16301f,{roughness:.22,metalness:.1}),bl=SM(0x586a48,{roughness:.4}),tm=new THREE.MeshBasicMaterial({color:0xd8d4b8}),V=(x,y,z)=>new THREE.Vector3(x,y,z);
@@ -142,7 +163,7 @@ const jmon=mkCreature(camera),jnes=mkNess(camera),jl=new THREE.PointLight(0xff5a
 const ghost=new THREE.Group();[-.1,.1].forEach(x=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0xffffff,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));sp.scale.set(.1,.07,1);sp.position.x=x;ghost.add(sp)});ghost.visible=false;scene.add(ghost);
 const _f=new THREE.Vector3(),_d=new THREE.Vector3();
 /* throwable bottles */
-const BOT=[];{const spots=[[8.5,5.5],[16.5,5.5],[2.5,9.5],[20.5,9.5],[15.5,13.5],[2.5,15.5],[26.5,14.5],[25.5,4.5],[6.5,12.5]].filter(([x,z])=>!solid(x|0,z|0));
+const BOT=[];{const spots=[[8.5,5.5],[16.5,5.5],[2.5,9.5],[20.5,9.5],[15.5,13.5],[2.5,15.5],[26.5,14.5],[25.5,4.5],[6.5,12.5],[36.5,5.5],[48.5,9.5],[55.5,5.5],[28.5,22.5],[40.5,13.5],[44.5,22.5],[56.5,15.5],[6.5,26.5],[34.5,27.5],[12.5,31.5],[28.5,33.5],[44.5,36.5],[56.5,38.5],[52.5,26.5],[60.5,21.5]].filter(([x,z])=>!solid(x|0,z|0));
  const geo=new THREE.BoxGeometry(.07,.22,.07),mat=new THREE.MeshBasicMaterial({color:0x55dd88});
  spots.forEach(([x,z])=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,.12,z);m.rotation.z=1.4;scene.add(m);BOT.push({x,z,m,got:false})})}
 
@@ -152,22 +173,23 @@ const NOTES=[];{const geo=new THREE.PlaneGeometry(.2,.28).rotateX(-Math.PI/2),ma
  NOTE_TXT.forEach((t,i)=>{const m=new THREE.Mesh(geo,mat);m.visible=false;scene.add(m);NOTES.push({i,x:0,z:0,m,got:false})})}
 function placeNotes(){const rooms=RK.slice().sort(()=>Math.random()-.5);NOTES.forEach((n,i)=>{const c=rooms[i%rooms.length],t=pick(RT[c]);n.x=t[0]+.5+R(-.25,.25);n.z=t[1]+.5+R(-.25,.25);n.got=false;n.m.visible=true;n.m.position.set(n.x,.03,n.z);n.m.rotation.y=R(0,TAU)})}
 /* ---------- wall dressing: blood writing, handprints, scratches, ruined photos ---------- */
-function decal(w,h,draw,x,y,z,ry){const W2=512,H2=Math.round(512*h/w),c=document.createElement('canvas');c.width=W2;c.height=H2;draw(c.getContext('2d'),W2,H2);
- const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshLambertMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false,emissive:0x110000}));m.position.set(x,y,z);m.rotation.y=ry;scene.add(m)}
+const TC={};
+function decal(w,h,draw,x,y,z,ry,key){let t=TC[key];if(!t){const W2=256,H2=Math.round(256*h/w),c=document.createElement('canvas');c.width=W2;c.height=H2;draw(c.getContext('2d'),W2,H2);t=TC[key]=new THREE.CanvasTexture(c)}
+ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshLambertMaterial({map:t,transparent:true,depthWrite:false,emissive:0x110000}));m.position.set(x,y,z);m.rotation.y=ry;scene.add(m)}
 {const WORDS=["DON'T SLEEP",'IT SEES YOU','6 AM','LEAVE','IT IS HERE',"DON'T LOOK",'NOT ALONE','HELP ME','STAY AWAKE'],faces=[];
- for(let z=0;z<H;z++)for(let x=0;x<W;x++)if(G[z][x]=='#')for(const[nx,nz]of[[1,0],[-1,0],[0,1],[0,-1]]){const r=G[z+nz]&&G[z+nz][x+nx];if(r&&r!='#'&&r!='X'&&!(z==0))faces.push([x,z,nx,nz,r])}
+ for(let z=1;z<H-1;z++)for(let x=1;x<W-1;x++)if(G[z][x]=='#')for(const[nx,nz]of[[1,0],[-1,0],[0,1],[0,-1]]){const r=G[z+nz]&&G[z+nz][x+nx];if(r&&r!='#'&&r!='X')faces.push([x,z,nx,nz,r])}
  faces.sort(()=>Math.random()-.5);const used=[];
  const draws=[
-  (g,w,h)=>{g.fillStyle='rgba(120,12,12,.9)';g.font="bold 78px 'Special Elite','Courier New',monospace";const t=pick(WORDS);g.fillText(t,16,100);g.strokeStyle='rgba(120,12,12,.8)';g.lineWidth=6;for(let i=0;i<9;i++){const x=24+i*(w-48)/9;g.beginPath();g.moveTo(x,110);g.lineTo(x+R(-4,4),110+R(10,h-114));g.stroke()}},
-  (g,w,h)=>{g.fillStyle='rgba(110,10,10,.85)';g.beginPath();g.ellipse(w/2,h*.62,w*.2,h*.22,0,0,7);g.fill();for(let i=0;i<5;i++){const a=-1.2+i*.6;g.save();g.translate(w/2+Math.sin(a)*w*.16,h*.5-Math.cos(a)*h*.12);g.rotate(a);g.beginPath();g.ellipse(0,-h*.16,w*.045,h*.2,0,0,7);g.fill();g.restore()}for(let i=0;i<4;i++){g.fillRect(w/2-w*.18+i*w*.1,h*.8,5,R(h*.05,h*.2))}},
-  (g,w,h)=>{g.strokeStyle='rgba(10,10,10,.8)';g.lineWidth=7;for(let i=0;i<5;i++){g.beginPath();g.moveTo(60+i*70,20);g.lineTo(100+i*70+R(-10,10),h-20);g.stroke()}},
-  (g,w,h)=>{g.fillStyle='#17110c';g.fillRect(0,0,w,h);g.fillStyle='#6d665a';g.fillRect(24,24,w-48,h-48);g.fillStyle='#2a2622';for(let i=0;i<3;i++){const x=w*(.25+.25*i);g.beginPath();g.arc(x,h*.4,w*.07,0,7);g.fill();g.fillRect(x-w*.09,h*.5,w*.18,h*.4)}g.strokeStyle='rgba(140,12,12,.9)';g.lineWidth=12;const k=w*.5;g.beginPath();g.moveTo(k-w*.1,h*.28);g.lineTo(k+w*.1,h*.52);g.moveTo(k+w*.1,h*.28);g.lineTo(k-w*.1,h*.52);g.stroke()}];
+  (g,w,h)=>{g.fillStyle='rgba(120,12,12,.9)';g.font=`bold ${w*.15|0}px 'Special Elite','Courier New',monospace`;g.fillText(pick(WORDS),w*.03,h*.4);g.strokeStyle='rgba(120,12,12,.8)';g.lineWidth=w*.012;for(let i=0;i<9;i++){const x=w*.05+i*w*.1;g.beginPath();g.moveTo(x,h*.45);g.lineTo(x+R(-3,3),h*.45+R(h*.05,h*.5));g.stroke()}},
+  (g,w,h)=>{g.fillStyle='rgba(110,10,10,.85)';g.beginPath();g.ellipse(w/2,h*.62,w*.2,h*.22,0,0,7);g.fill();for(let i=0;i<5;i++){const a=-1.2+i*.6;g.save();g.translate(w/2+Math.sin(a)*w*.16,h*.5-Math.cos(a)*h*.12);g.rotate(a);g.beginPath();g.ellipse(0,-h*.16,w*.045,h*.2,0,0,7);g.fill();g.restore()}for(let i=0;i<4;i++)g.fillRect(w/2-w*.18+i*w*.1,h*.8,3,R(h*.05,h*.2))},
+  (g,w,h)=>{g.strokeStyle='rgba(10,10,10,.8)';g.lineWidth=w*.014;for(let i=0;i<5;i++){g.beginPath();g.moveTo(w*.12+i*w*.14,h*.04);g.lineTo(w*.2+i*w*.14+R(-6,6),h*.96);g.stroke()}},
+  (g,w,h)=>{g.fillStyle='#17110c';g.fillRect(0,0,w,h);g.fillStyle='#6d665a';g.fillRect(w*.05,h*.05,w*.9,h*.9);g.fillStyle='#2a2622';for(let i=0;i<3;i++){const x=w*(.25+.25*i);g.beginPath();g.arc(x,h*.4,w*.07,0,7);g.fill();g.fillRect(x-w*.09,h*.5,w*.18,h*.4)}g.strokeStyle='rgba(140,12,12,.9)';g.lineWidth=w*.025;const k=w*.5;g.beginPath();g.moveTo(k-w*.1,h*.28);g.lineTo(k+w*.1,h*.52);g.moveTo(k+w*.1,h*.28);g.lineTo(k-w*.1,h*.52);g.stroke()}];
  const dims=[[1.7,.55],[.8,.8],[.9,.9],[.6,.75]];
- for(const[x,z,nx,nz,r]of faces){if(used.length>=26)break;if(used.some(u=>Math.hypot(u[0]-x,u[1]-z)<3))continue;used.push([x,z]);
+ for(const[x,z,nx,nz,r]of faces){if(used.length>=80)break;if(used.some(u=>Math.hypot(u[0]-x,u[1]-z)<4))continue;used.push([x,z]);
   const k=Math.random()<.2?3:Math.random()<.35?1:Math.random()<.4?2:0,[dw,dh]=dims[k],y=k==3?1.55:k==0?R(1.2,1.7):R(.9,1.5);
-  decal(dw,dh,draws[k],x+.5+nx*.505,y,z+.5+nz*.505,Math.atan2(nx,nz))}}
+  decal(dw,dh,draws[k],x+.5+nx*.505,y,z+.5+nz*.505,Math.atan2(nx,nz),k+':'+(Math.random()*3|0))}}
 /* ---------- creature AI ---------- */
-const C={x:26.5,z:4.5,face:Math.PI,st:'patrol',alert:0,tx:-1,tz:-1,fl:null,wx:null,wz:null,ls:null,lostT:0,q:[],waiting:0,opening:false,room:'l',ping:20,noiseCd:0,moved:0,stepD:0,ph:0,nx:0,nz:0};
+const C={x:30.5,z:38.5,face:Math.PI,st:'patrol',alert:0,tx:-1,tz:-1,fl:null,wx:null,wz:null,ls:null,lostT:0,q:[],waiting:0,opening:false,room:'g',ping:14,noiseCd:0,moved:0,stepD:0,ph:0,nx:0,nz:0};
 function setTarget(tx,tz){if(tx!=C.tx||tz!=C.tz){C.tx=tx;C.tz=tz;C.fl=flow(tx,tz);C.wx=null}}
 function turn(dx,dz,dt){C.face+=angDiff(C.face,Math.atan2(dx,dz))*Math.min(1,dt*8)}
 function walk(dt,speed){const cx=Math.floor(C.x),cz=Math.floor(C.z),d=C.fl[cz*W+cx];
@@ -176,7 +198,7 @@ function walk(dt,speed){const cx=Math.floor(C.x),cz=Math.floor(C.z),d=C.fl[cz*W+
  if(C.wx===null||Math.hypot(C.wx-C.x,C.wz-C.z)<.15){let best=d,bx=-1,bz=-1;for(const[dx,dz]of DIRS){const nx=cx+dx,nz=cz+dz;if(solid(nx,nz))continue;if(dx&&dz&&(solid(cx+dx,cz)||solid(cx,cz+dz)))continue;const nd=C.fl[nz*W+nx];if(nd>=0&&nd<best){best=nd;bx=nx;bz=nz}}if(bx<0)return true;C.wx=bx+.5;C.wz=bz+.5}
  const dx=C.wx-C.x,dz=C.wz-C.z,dist=Math.hypot(dx,dz)||1,s=Math.min(speed*dt,dist);C.x+=dx/dist*s;C.z+=dz/dist*s;turn(dx,dz,dt);return false}
 function newPatrol(){const row=G[Math.floor(P.z)],pr=row&&row[Math.floor(P.x)];let c;
- if(C.ping<=0&&pr&&RT[pr]){c=pr;C.ping=R(16,26)*(1-.55*S.dd)}else{do c=pick(RK);while(c==C.room&&RK.length>1)}
+ if(C.ping<=0&&pr&&RT[pr]){c=pr;C.ping=R(9,17)*(1-.55*S.dd)}else{do c=pick(RK);while(c==C.room&&RK.length>1)}
  C.room=c;const t=pick(RT[c]);setTarget(t[0],t[1])}
 function searchQueue(at){const q=[{go:[Math.floor(at.x),Math.floor(at.z)]}];
  WARD.map(w=>({w,d:Math.hypot(w.cx-at.x,w.cz-at.z)})).filter(o=>o.d<11).sort((a,b)=>a.d-b.d).slice(0,3).sort(()=>Math.random()-.5).slice(0,2).forEach(o=>q.push({ward:o.w}));return q}
@@ -189,7 +211,7 @@ function openWard(q){const w=q.ward;thud(w.cx,w.cz,.5);if(P.hide!==w)return;
 function creatureTick(dt){const ox=C.x,oz=C.z,dd=S.dd,dx=P.x-C.x,dz=P.z-C.z,dist=Math.hypot(dx,dz);
  C.ping-=dt;C.noiseCd-=dt;
  let sees=false;const vr=8+(P.flash?6:0)+4*dd;
- if(!P.hide){const fx=Math.sin(C.face),fz=Math.cos(C.face),dot=(dx*fx+dz*fz)/(dist||1);if(dist<vr&&(dot>.45||dist<1.8)&&los(C.x,C.z,P.x,P.z))sees=true;if(S.exitOpen&&dist<30)sees=true}
+ if(!P.hide){const fx=Math.sin(C.face),fz=Math.cos(C.face),dot=(dx*fx+dz*fz)/(dist||1);if(dist<vr&&(dot>.45||dist<1.8)&&los(C.x,C.z,P.x,P.z))sees=true;if(S.exitOpen&&dist<36)sees=true}
  if(sees)C.alert=Math.min(1,C.alert+dt*(.45+(1-dist/vr)*1.6+(P.sprinting?.5:0)+(P.flash?.4:0)));else C.alert=Math.max(0,C.alert-dt*.3);
  if(C.alert>=1&&C.st!='hunt'&&!P.hide)startHunt();
  if(!P.hide&&C.noiseCd<=0&&(C.st=='patrol'||C.st=='queue')&&dist<P.noise){C.st='investigate';C.nx=P.x;C.nz=P.z;setTarget(Math.floor(P.x),Math.floor(P.z));C.waiting=0;C.noiseCd=1.5}
@@ -301,7 +323,7 @@ function menu(view='main'){S.menu=true;S.running=false;document.body.classList.r
  meta=best||wins?`Longest night: ${fmt(best)}${wins?' · Escapes: '+wins:''} · Notes found: ${nn}/6`:'No night survived yet.';
  const V={
   main:`<h1>The Last<br>6 Hours</h1><h4 class="part">PART 2 · THE HOUSE</h4><p class="tag">You survived the bathroom. Now the whole house is yours, and so is everything in it.</p><nav><button data-a="play">Start the night</button><button data-a="how">How to play</button><button data-a="set">Settings</button></nav><p class="meta">${meta}</p>`,
-  how:`<h2>How to play</h2><dl><dt>Survive</dt><dd>Stay alive from 12 AM to 6 AM, then reach the front door at the end of the hall.</dd><dt>The thing in the dark</dt><dd>It patrols, listens and hunts. Break line of sight and hide in a closet. Hold your breath when it is close.</dd><dt>The plumbing</dt><dd>Stay away from sinks, toilets and tubs. If something stirs, back away or hit it with your flashlight.</dd><dt>Bottles</dt><dd>Throw one to pull the thing toward the noise. Find batteries for the flashlight and notes that explain what happened here.</dd><dt>Controls</dt><dd>${coarse?'Left thumb moves, right thumb looks. Buttons for LIGHT, RUN, ACT, THROW and HOLD BREATH.':'WASD move, mouse look, Shift run, F flashlight, E hide / leave, Q throw a bottle, hold Space to hold your breath.'}</dd></dl><button class="bk" data-a="back">Back</button>`,
+  how:`<h2>How to play</h2><dl><dt>Survive</dt><dd>Stay alive from 12 AM to 6 AM, then reach the front door at the far east end of the south hall. The house is big: learn the halls and the closets.</dd><dt>The thing in the dark</dt><dd>It patrols, listens and hunts. Break line of sight and hide in a closet. Hold your breath when it is close.</dd><dt>The plumbing</dt><dd>Stay away from sinks, toilets and tubs. If something stirs, back away or hit it with your flashlight.</dd><dt>Bottles</dt><dd>Throw one to pull the thing toward the noise. Find batteries for the flashlight and notes that explain what happened here.</dd><dt>Controls</dt><dd>${coarse?'Left thumb moves, right thumb looks. Buttons for LIGHT, RUN, ACT, THROW and HOLD BREATH.':'WASD move, mouse look, Shift run, F flashlight, E hide / leave, Q throw a bottle, hold Space to hold your breath.'}</dd></dl><button class="bk" data-a="back">Back</button>`,
   set:`<h2>Settings</h2><label>Volume<br><input id="vol" type="range" min="0" max="100" value="${vol*100|0}"></label><p><label>Look sensitivity<br><input id="sens" type="range" min="30" max="200" value="${sens*100|0}"></label></p><p><button class="bk" data-a="bright">Brightness: ${BN[S.bright]}</button></p><p><button class="bk" data-a="clear">Clear records</button></p><button class="bk" data-a="back">Back</button>`};
  s.className='scr menu';s.innerHTML=V[view];
  s.onclick=e=>{const a=e.target.dataset.a;if(!a)return;audio();click();
@@ -312,9 +334,9 @@ function menu(view='main'){S.menu=true;S.running=false;document.body.classList.r
  const q=$('sens');if(q)q.oninput=()=>{sens=q.value/100;store.set('l6h2_sens',sens)}}
 function reset(){Object.assign(S,{t:0,running:true,over:false,paused:false,exitOpen:false,hr:0,dd:0,hint:{},amb:10,menu:false,threat:0,st:{batt:0,thrown:0,hides:0,notes:0}});
  Object.assign(P,{x:3.5,z:5.5,yaw:Math.PI,pitch:0,hide:null,stam:1,tired:false,flash:false,bat:100,breath:1,holding:false,sprinting:false,moving:false,noise:0,stepD:0,bottles:2});
- Object.assign(C,{x:26.5,z:4.5,face:Math.PI,st:'patrol',alert:0,tx:-1,fl:null,wx:null,ls:null,q:[],waiting:0,opening:false,room:'l',ping:20,noiseCd:0,moved:0});
+ Object.assign(C,{x:30.5,z:38.5,face:Math.PI,st:'patrol',alert:0,tx:-1,fl:null,wx:null,ls:null,q:[],waiting:0,opening:false,room:'g',ping:14,noiseCd:0,moved:0});
  Object.assign(FS,{at:0,ph:'dorm',t:0,r:0,cool:18,reloc:20});BAT.forEach(b=>{b.got=false;b.m.visible=true});BOT.forEach(b=>{b.got=false;b.m.visible=true});
- exitL.color.setHex(0xff3322);cm.visible=false;J=null;jmon.visible=false;jnes.visible=false;jl.intensity=0;ghostT=0;ghostCd=R(25,45);blk=0;ghost.visible=false;fm.visible=false;document.body.classList.remove('jx');document.body.classList.remove('inm');placeNotes();$('slats').style.display='none';$('bH').style.display='none';$('scr').classList.add('hide');$('js').className='';$('js').style.background='';
+ exitL.color.setHex(0xff3322);exitSign.material.color.setHex(0xff3322);$('exitd').style.display='none';cm.visible=false;J=null;jmon.visible=false;jnes.visible=false;jl.intensity=0;ghostT=0;ghostCd=R(25,45);blk=0;ghost.visible=false;fm.visible=false;document.body.classList.remove('jx');document.body.classList.remove('inm');placeNotes();$('slats').style.display='none';$('bH').style.display='none';$('scr').classList.add('hide');$('js').className='';$('js').style.background='';
  msg(coarse?'Left thumb: move. Right thumb: look. ACT near a closet to hide.':'WASD move · mouse look · Shift run · F flashlight · E interact · Q throw bottle',6500)}
 const fmt=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
 function statLine(win){const best=num('l6h2_best',0);if(!win&&S.t>best)store.set('l6h2_best',S.t|0);let w=num('l6h2_wins',0);if(win){w++;store.set('l6h2_wins',w)}
@@ -327,12 +349,12 @@ function win(){S.running=false;S.over=true;document.exitPointerLock&&document.ex
 function tick(dt){
  S.t+=dt;S.dd=Math.min(1,S.t/360);const h=Math.min(6,S.t/60|0);
  if(h>S.hr){S.hr=h;if(h<6){tone(520,1.2,'sine',.15);msg(HL[h]+' — it is getting worse...',3500)}}
- if(S.t>=360&&!S.exitOpen){S.exitOpen=true;exitL.color.setHex(0x33ff66);msg('6 AM — the front door is unlocked at the end of the hall. GET OUT!',9000);tone(880,1.5,'sine',.25);tone(1100,1.5,'sine',.15,0,.2)}
+ if(S.t>=360&&!S.exitOpen){S.exitOpen=true;exitL.color.setHex(0x33ff66);exitSign.material.color.setHex(0x33ff66);msg('6 AM — the front door is unlocked at the far end of the south hall. The arrow points to it. GET OUT!',9000);tone(880,1.5,'sine',.25);tone(1100,1.5,'sine',.15,0,.2)}
  if(drone)drone.gain.value=.03+.08*S.dd+.05*(S.danger||0);
  playerTick(dt);if(S.over)return;
  if(S.t>22){cm.visible=true;creatureTick(dt);if(S.over)return}
  fishTick(dt);if(S.over)return;
- if(S.exitOpen&&!P.hide&&P.x>29.3)return win();
+ if(S.exitOpen&&!P.hide&&P.x>W-.7)return win();
  S.amb-=dt;if(S.amb<=0){S.amb=R(9,22)*(1-.4*S.dd);const a=R(0,TAU),r=R(6,16),x=P.x+Math.cos(a)*r,z=P.z+Math.sin(a)*r,s=spat(x,z);const q=Math.random();if(q<.35)noise(.15,200,.4*s.v+.04,0,s.pan);else if(q<.65)tone(R(180,260),.5,'sawtooth',.05*s.v+.01,-80,0,s.pan);else{tone(R(90,140),.9,'sawtooth',.06*s.v+.015,R(-40,40),0,s.pan);noise(.5,300,.05*s.v+.01,0,s.pan)}}
  ghostT-=dt;ghostCd-=dt;
  if(ghostCd<=0&&S.t>30&&!P.hide){ghostCd=R(25,55)*(1-.4*S.dd);const an=P.yaw+R(-.7,.7),r=R(4,9),gx=P.x-Math.sin(an)*r,gz=P.z-Math.cos(an)*r;if(!wallAt(Math.floor(gx),Math.floor(gz))&&los(P.x,P.z,gx,gz)){ghost.position.set(gx,Math.random()<.5?1.75:.35,gz);ghostT=R(1.2,2.4);whisper(spat(gx,gz).pan)}}
@@ -344,6 +366,7 @@ function tick(dt){
  S.danger=(S.danger||0)+(d-(S.danger||0))*Math.min(1,dt*3);
  if(S.danger>.12){S.hb=(S.hb||0)-dt;if(S.hb<=0){tone(60,.15,'sine',.35*S.danger,-20);tone(60,.15,'sine',.25*S.danger,-20,.18);S.hb=1.1-.6*S.danger}}}
 function hud(){$('clock').textContent=HL[Math.min(6,S.t/60|0)];$('bat').firstChild.style.width=P.bat+'%';$('sta').firstChild.style.width=P.stam*100+'%';$('botl').textContent='BOTTLES: '+P.bottles;$('noteh').textContent='NOTES: '+S.st.notes+'/6';
+ if(S.exitOpen){const dx=EX.x-P.x,dz=EX.z-P.z,fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw),rx=Math.cos(P.yaw),rz=-Math.sin(P.yaw),e=$('exitd');e.style.display='block';e.innerHTML='<span style="display:inline-block;transform:rotate('+(Math.atan2(dx*rx+dz*rz,dx*fx+dz*fz)*57.3|0)+'deg)">▲</span> EXIT '+(Math.hypot(dx,dz)|0)+'m'}
  const row=G[Math.floor(P.z)],c=row&&row[Math.floor(P.x)];$('room').textContent=NAMES[c]||'';
  const n=S.running?nearest():null,p=$('prompt');if(n){p.textContent=(coarse?'':'[E] ')+(n.t=='exit'?'Leave closet':'Hide');p.style.opacity=1}else p.style.opacity=0;
  $('red').style.opacity=Math.min(.75,(S.danger||0)*.8)}
