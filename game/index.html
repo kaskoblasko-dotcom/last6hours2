@@ -2,6 +2,9 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <title>The Last 6 Hours 2: The House</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Crect width=%2716%27 height=%2716%27 fill=%27%23000%27/%3E%3Ccircle cx=%275%27 cy=%278%27 r=%272%27 fill=%27%23fff%27/%3E%3Ccircle cx=%2711%27 cy=%278%27 r=%272%27 fill=%27%23fff%27/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300&family=Special+Elite&display=swap" rel="stylesheet">
 <meta name="theme-color" content="#000000"><meta name="mobile-web-app-capable" content="yes">
 <style>
 :root{color-scheme:dark}
@@ -25,14 +28,12 @@ html,body{margin:0;height:100%;background:#000;color:#cfd8cf;font:14px 'Courier 
 .scr h1{font-size:clamp(26px,6vw,54px);margin:0;letter-spacing:4px;font-weight:400}
 .scr h2{margin:-8px 0 0;font-weight:400;font-size:clamp(14px,2.5vw,20px);color:#8a9;letter-spacing:6px}
 .scr p{max-width:620px;line-height:1.6;margin:0;color:#aab}
-.scr button,#brb{font:inherit;font-size:18px;padding:12px 28px;background:#a11;color:#fff;border:0;border-radius:6px;cursor:pointer}
-#brb{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:25;font-size:12px;padding:8px 12px;background:#222;display:none}
-#scr:not(.hide)~#brb{display:block}
+.scr button{font:inherit;font-size:18px;padding:12px 28px;background:#a11;color:#fff;border:0;border-radius:6px;cursor:pointer}
 #ver{position:fixed;left:10px;bottom:6px;font-size:10px;opacity:.4;z-index:26;pointer-events:none}
-#js{position:fixed;inset:0;background:radial-gradient(circle,#111,#000 70%);display:none;align-items:center;justify-content:center;z-index:30}
-#js.on{display:flex}
-#js i{width:14vmin;height:6vmin;background:#fff;border-radius:50%;margin:0 6vmin;box-shadow:0 0 6vmin 2vmin #fff;animation:z .12s infinite alternate}
-#js.fish i{background:#e8ffb0;box-shadow:0 0 6vmin 2vmin #8f4}
+body.inm #clock,body.inm #bars,body.inm #room,body.inm #prompt,body.inm #msg,body.inm #red,body.inm #cross,body.inm #tc{display:none!important}
+#js{position:fixed;inset:0;display:none;z-index:30;pointer-events:none}
+#js.on{display:block}
+body.jx #clock,body.jx #bars,body.jx #room,body.jx #prompt,body.jx #msg,body.jx #red,body.jx #cross,body.jx #tc{display:none!important}
 @keyframes z{from{transform:scale(.7) translate(-1vmin,0)}to{transform:scale(2.8) translate(1vmin,1vmin)}}
 #rot{position:fixed;inset:0;z-index:40;background:#000;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;font-size:18px}
 @media (orientation:portrait) and (pointer:coarse){#rot{display:flex}}
@@ -47,18 +48,35 @@ body.t #tc{display:block}
 #bH{right:calc(112px + env(safe-area-inset-right,0px));bottom:calc(110px + env(safe-area-inset-bottom,0px));display:none;background:#312}
 #joy{position:fixed;width:120px;height:120px;margin:-60px;border-radius:50%;border:2px solid #fff3;display:none;pointer-events:none;z-index:11}
 #knob{position:absolute;left:40px;top:40px;width:40px;height:40px;border-radius:50%;background:#fff4}
+.scr{font-family:'Special Elite','Courier New',monospace}
+.scr:not(.menu) h1{font-family:Oswald,'Arial Narrow',Impact,sans-serif;font-weight:300}
+.scr .row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}.scr button.alt{background:#222;color:#cfc9bc}
+.scr.menu{align-items:flex-start;text-align:left;justify-content:center;padding:0 8vw;gap:0;background:linear-gradient(90deg,#000e 0,#000a 38%,#0000 75%)}
+.menu h1{margin:0 0 6px;font:200 clamp(56px,12vw,150px)/.86 Oswald,'Arial Narrow',Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase;color:#e9e4d8;animation:fl 7s infinite}
+@keyframes fl{0%,92%,100%{opacity:1}93%{opacity:.35}94%{opacity:.9}96%{opacity:.2}97%{opacity:1}}
+.menu .part{margin:8px 0 18px;font-weight:400;font-size:14px;letter-spacing:.35em;color:#8a1c1c}
+.menu .tag{color:#9a948a;margin:0 0 34px;max-width:30ch;line-height:1.5}
+.menu nav{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.menu nav button,.menu .bk{background:none;border:0;border-radius:0;color:#cfc9bc;font:inherit;font-size:clamp(18px,3.4vh,26px);padding:7px 0;cursor:pointer;transition:transform .15s,color .15s}
+.menu nav button:hover,.menu nav button:focus-visible,.menu .bk:hover,.menu .bk:focus-visible{color:#fff;transform:translateX(10px);outline:none}
+.menu nav button:hover::before,.menu nav button:focus-visible::before{content:'– ';color:#8a1c1c}
+.menu .meta{margin:36px 0 0;color:#6f6a61;font-size:14px}
+.menu h2{margin:0 0 8px;font:300 34px Oswald,sans-serif;color:#e9e4d8}
+.menu dl{margin:0 0 20px;max-width:56ch}.menu dt{color:#e9e4d8;margin-top:12px}.menu dd{margin:4px 0 0;color:#9a948a;line-height:1.5}
+.menu label{color:#cfc9bc}.menu input[type=range]{width:min(320px,70vw);accent-color:#8a1c1c;margin-top:10px}
+@media (max-height:520px){.menu h1{font-size:clamp(40px,17vh,70px)}.menu .tag{margin-bottom:12px}.menu nav button,.menu .bk{font-size:17px;padding:3px 0}.menu .meta{margin-top:12px}.menu dl{font-size:12px;margin-bottom:6px}.menu dt{margin-top:6px}}
 .hide{display:none!important}
 </style></head><body>
 <div id="vig" class="o"></div><div id="red" class="o"></div><div id="slats" class="o"></div><div id="cross"></div>
 <div id="clock">12 AM</div><div id="room"></div>
-<div id="bars"><small>FLASHLIGHT</small><div id="bat"><i style="width:100%"></i></div><small>STAMINA</small><div id="sta"><i style="width:100%"></i></div><small id="botl">BOTTLES: 2</small></div>
+<div id="bars"><small>FLASHLIGHT</small><div id="bat"><i style="width:100%"></i></div><small>STAMINA</small><div id="sta"><i style="width:100%"></i></div><small id="botl">BOTTLES: 2</small><small id="noteh">NOTES: 0/6</small></div>
 <div id="msg"></div><div id="prompt"></div>
 <div id="tc"><div id="joy"><div id="knob"></div></div>
 <div class="b" id="bF">LIGHT</div><div class="b" id="bS">RUN</div><div class="b" id="bA">ACT</div><div class="b" id="bT">THROW</div><div class="b" id="bH">HOLD<br>BREATH</div></div>
 <div id="rot">Rotate your device to landscape to play.</div>
-<div id="js"><i></i><i></i></div>
+<div id="js"></div>
 <div id="scr" class="scr"></div>
-<button id="brb">BRIGHTNESS: NORMAL</button><div id="ver"></div>
+<div id="ver"></div>
 <script src="three.min.js"></script>
 <script src="game.js"></script>
 </body></html>
