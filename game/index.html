@@ -71,11 +71,28 @@ body.jx #exitd,body.inm #exitd{display:none!important}
 #fade{background:#000;opacity:0;z-index:25}
 body.inm #tasks,body.jx #tasks{display:none!important}
 .hide{display:none!important}
+#pulse{background:radial-gradient(ellipse at center,transparent 25%,#a00 130%);opacity:0;z-index:9}
+#freeze{position:fixed;left:50%;top:32%;transform:translateX(-50%);display:none;color:#e8e4d8;font:300 clamp(28px,6vw,56px) Oswald,'Arial Narrow',Impact,sans-serif;letter-spacing:.3em;text-shadow:0 0 14px #a00;pointer-events:none;z-index:13;animation:fz .6s infinite alternate}
+@keyframes fz{from{opacity:.55}to{opacity:1}}
+#qte{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:28;background:#300a;text-align:center;touch-action:none}
+#qte.bad{background:#a00a}
+#qte small{font-size:14px;letter-spacing:.2em;color:#ddd}
+#qk{font:300 clamp(80px,22vh,160px)/1 Oswald,Impact,sans-serif;color:#fff;text-shadow:0 0 18px #f33;border:3px solid #fff8;border-radius:14px;min-width:1.3em;padding:0 .15em}
+#qd{font-size:24px;letter-spacing:.3em;color:#fcc}
+#qb{width:min(60vw,360px);height:10px;border:1px solid #fff8;background:#0008}
+#qb i{display:block;height:100%;width:100%;background:#e33}
+#qkeys{display:none;gap:8px;flex-wrap:wrap;justify-content:center;max-width:90vw}
+#qkeys button{font:inherit;font-size:20px;width:56px;height:56px;border-radius:10px;border:2px solid #fff8;background:#000a;color:#fff;touch-action:none}
+body.t #qkeys{display:flex}
+body.qte #clock,body.qte #bars,body.qte #room,body.qte #prompt,body.qte #tasks,body.qte #exitd,body.qte #tc{display:none!important}
+body.inm #pulse,body.inm #freeze,body.jx #pulse,body.jx #freeze{display:none!important}
 </style></head><body>
 <div id="vig" class="o"></div><div id="red" class="o"></div><div id="slats" class="o"></div><div id="cross"></div>
 <div id="clock">12 AM</div><div id="room"></div>
-<div id="bars"><small>FLASHLIGHT</small><div id="bat"><i style="width:100%"></i></div><small>STAMINA</small><div id="sta"><i style="width:100%"></i></div><small id="botl">BOTTLES: 2</small><small id="noteh">NOTES: 0/6</small></div>
+<div id="bars"><small>FLASHLIGHT</small><div id="bat"><i style="width:100%"></i></div><small>STAMINA</small><div id="sta"><i style="width:100%"></i></div><small id="botl">BOTTLES: 2</small><small id="noteh">NOTES: 0/6</small><small id="fusel">FUSES: 0/3</small></div>
+<div id="pulse" class="o"></div><div id="freeze">STAND STILL</div>
 <div id="msg"></div><div id="prompt"></div>
+<div id="qte"><small>BREAK FREE! PRESS</small><div id="qk">A</div><div id="qd"></div><div id="qb"><i></i></div><div id="qkeys"><button data-k="A">A</button><button data-k="W">W</button><button data-k="S">S</button><button data-k="D">D</button><button data-k="F">F</button><button data-k="G">G</button></div></div>
 <div id="tc"><div id="joy"><div id="knob"></div></div>
 <div class="b" id="bF">LIGHT</div><div class="b" id="bS">RUN</div><div class="b" id="bA">ACT</div><div class="b" id="bT">THROW</div><div class="b" id="bH">HOLD<br>BREATH</div></div>
 <div id="rot">Rotate your device to landscape to play.</div>
