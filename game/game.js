@@ -295,6 +295,8 @@ for(const[x,z]of[[29.5,38.1],[30.5,38.1],[19.5,12.9],[20.5,12.9]]){cy(.08,.08,.2
 for(const x of[28.5,31.5]){bb(.8,2.6,.8,x,0,54.5,0x6a6a66);bb(.95,.15,.95,x,2.6,54.5,0x55554f);bulbAt(x,2.95,54.5,.1)}
 const gateL=new THREE.Group();{const gm=new THREE.MeshLambertMaterial({map:fenceT,transparent:true,alphaTest:.5,side:THREE.DoubleSide});for(const s of[0,1]){const m=new THREE.Mesh(new THREE.PlaneGeometry(1,2.1),gm);m.position.set(29.5+s,1.05,54.5);gateL.add(m)}scene.add(gateL)}
 const exitSign=new THREE.Mesh(new THREE.BoxGeometry(2,.3,.1),new THREE.MeshBasicMaterial({color:0xff3322,fog:false}));exitSign.position.set(30,2.55,54.5);scene.add(exitSign);
+/* opaque backdrop behind the front fence so the 2nd floor (z 69-93) can't be seen from the yard */
+const backdrop=new THREE.Mesh(new THREE.PlaneGeometry(70,8),new THREE.MeshBasicMaterial({color:0x070b14,side:THREE.DoubleSide}));backdrop.position.set(32,4,56);scene.add(backdrop);
 flushBuckets();
 /* sky */
 const stars=(()=>{const n=600,p=new Float32Array(n*3);for(let i=0;i<n;i++){const a=Math.random()*TAU,e=Math.acos(R(.12,1)),r=90;p[i*3]=r*Math.sin(e)*Math.cos(a);p[i*3+1]=r*Math.cos(e);p[i*3+2]=r*Math.sin(e)*Math.sin(a)}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));const s=new THREE.Points(g,new THREE.PointsMaterial({color:0xffffff,size:1.6,sizeAttenuation:false,fog:false,transparent:true,opacity:.85}));s.frustumCulled=false;scene.add(s);return s})();
