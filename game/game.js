@@ -64,7 +64,7 @@ const ROOMS=[],DOORS=[],FU=[],WRD=[],WPD=[],WINS=[],TREES=[],BUSH=[];
 const NOCOL={rug:1,fusebox:1};
 const room=(c,x0,z0,x1,z1)=>{rect(c,x0,z0,x1,z1);ROOMS.push({c,x0,z0,x1,z1})};
 rect('O',2,2,61,53);rect('F',1,1,62,1);rect('F',1,54,62,54);rect('F',1,1,1,54);rect('F',62,1,62,54);
-rect('X',29,54,30,54);rect('T',28,40,31,53);rect('p',28,38,31,39);rect('p',18,11,21,12);
+rect('X',29,54,30,54);rect('T',28,40,31,53);rect('p',28,38,31,39);rect('p',18,11,21,12);rect('#',15,13,48,37);
 const plan=(o,A,hc,C)=>{for(const[c,a,b]of A)room(c,a,14+o,b,21+o);room(hc,16,23+o,46,24+o);for(const[c,a,b]of C)room(c,a,26+o,b,36+o)};
 plan(0,[['k',16,23],['d',25,34],['v',36,47]],'h',[['b',16,23],['f',25,34],['l',36,47]]);
 plan(ZO,[['m',16,25],['a',27,32],['n',34,47]],'H',[['g',16,23],['s',25,34],['u',36,47]]);
