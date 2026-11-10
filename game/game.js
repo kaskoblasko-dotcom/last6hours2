@@ -811,6 +811,7 @@ function tick(dt){
  S.danger+=(d-S.danger)*Math.min(1,dt*3);
  if(S.danger>.12){S.hb=(S.hb||0)-dt;if(S.hb<=0){heartbeat(S.danger);S.hb=1.1-.6*S.danger}}}
 function hud(){$('clock').textContent=HL[Math.min(6,S.t/60|0)];$('bat').firstChild.style.width=P.bat+'%';$('sta').firstChild.style.width=P.stam*100+'%';S.nzv=(S.nzv||0)+(Math.min(1,(P.noise||0)/10)-(S.nzv||0))*.25;{const nz=$('nz');nz.firstChild.style.width=(S.nzv*100)+'%';nz.firstChild.style.background=S.nzv>.7?'#d04a3a':S.nzv>.35?'#d0a03a':'#6aa86a';$('nzl').textContent='NOISE'+(P.pose==1?' · CROUCHING':P.pose==2?' · CRAWLING':'')}$('botl').textContent='BOTTLES: '+P.bottles;$('noteh').textContent='NOTES: '+S.st.notes+'/6';$('fusel').textContent='FUSES: '+S.fuses+'/3';
+ $('h1').classList.toggle('on',!!P.flash);$('h1b').style.width=P.bat+'%';for(let i=2;i<=5;i++)$('h'+i).classList.toggle('full',P.bottles>=i-1);
  if(S.exitOpen){const tg0=P.z>=B0?{x:17.5,z:B0+23.5}:P.z>=ZO?{x:STS+.5,z:ZO+24}:EX,dx=tg0.x-P.x,dz=tg0.z-P.z,fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw),rx=Math.cos(P.yaw),rz=-Math.sin(P.yaw),e=$('exitd');e.style.display='block';e.innerHTML='<span style="display:inline-block;transform:rotate('+(Math.atan2(dx*rx+dz*rz,dx*fx+dz*fz)*57.3|0)+'deg)">▲</span> '+(P.z>=B0?'LADDER':P.z>=ZO?'STAIRS':'GATE')+' '+(Math.hypot(dx,dz)|0)+'m'}
  const row=G[Math.floor(P.z)],c=row&&row[Math.floor(P.x)];$('room').textContent=NAMES[c]||'';
  const n=S.running&&!S.climb&&!S.grab?nearest():null,tk=S.running&&!S.climb&&!n&&!S.grab?nearTask():null,p=$('prompt');if(n){p.textContent=(coarse?'':'[E] ')+(n.t=='exit'?'Leave closet':n.t=='door'?(n.o.t?'Close door':'Open door'):n.t=='link'?n.k.txt:'Hide');p.style.opacity=1}else if(tk){p.textContent=S.taskMsg||((coarse?'Hold ACT: ':'Hold [E]: ')+tk.name+(tk.p>0?' '+Math.round(tk.p*100)+'%':''));p.style.opacity=1}else p.style.opacity=0;
@@ -818,7 +819,7 @@ function hud(){$('clock').textContent=HL[Math.min(6,S.t/60|0)];$('bat').firstChi
  if(S.grab){$('qb').firstChild.style.width=Math.max(0,100*(1-S.grab.t/S.grab.lim))+'%'}}
 /* ---------- input ---------- */
 const T={move:null,look:null},QMAP={KeyA:'A',KeyW:'W',KeyS:'S',KeyD:'D',KeyF:'F',KeyG:'G'};
-addEventListener('keydown',e=>{if(S.grab){const L=QMAP[e.code];if(L&&!e.repeat)qteInput(L);e.preventDefault();return}K[e.code]=true;if(e.repeat||!S.running)return;if(e.code=='KeyF')setFlash(!P.flash);else if(e.code=='KeyE')interact();else if(e.code=='KeyQ')throwBottle();else if(e.code=='KeyC')setPose(P.pose==1?0:1);else if(e.code=='KeyX')setPose(P.pose==2?0:2);else if(e.code=='Space'){e.preventDefault();I.breath=true}});
+addEventListener('keydown',e=>{if(S.grab){const L=QMAP[e.code];if(L&&!e.repeat)qteInput(L);e.preventDefault();return}K[e.code]=true;if(e.repeat||!S.running)return;if(e.code=='KeyF')setFlash(!P.flash);else if(e.code=='Digit1')setFlash(!P.flash);else if(/^Digit[2-5]$/.test(e.code)){if(P.bottles>=+e.code.slice(5)-1)throwBottle()}else if(e.code=='KeyE')interact();else if(e.code=='KeyQ')throwBottle();else if(e.code=='KeyC')setPose(P.pose==1?0:1);else if(e.code=='KeyX')setPose(P.pose==2?0:2);else if(e.code=='Space'){e.preventDefault();I.breath=true}});
 addEventListener('keyup',e=>{K[e.code]=false;if(e.code=='Space')I.breath=false});
 document.addEventListener('mousemove',e=>{if(document.pointerLockElement&&S.running&&!S.paused)look(e.movementX,e.movementY,.0022*sens)});
 document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&S.running&&!coarse){S.paused=true;I.mx=I.mz=0;show('PAUSED','Click to resume.','RESUME');$('go').onclick=()=>{$('scr').classList.add('hide');S.paused=false;lockPtr()}}});
@@ -836,6 +837,7 @@ const hold=(id,k)=>{const b=$(id),u=()=>{I[k]=false;b.classList.remove('on')};b.
 hold('bS','sprint');hold('bH','breath');hold('bA','act');
 $('bF').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(S.running)setFlash(!P.flash)});
 $('bC').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();setPose(((P.pose|0)+1)%3)});
+$('h1').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();setFlash(!P.flash)});for(let i=2;i<=5;i++)$('h'+i).addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(P.bottles>=i-1)throwBottle()});
 $('bT').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();throwBottle()});
 $('bA').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();interact()});
 document.querySelectorAll('#qkeys button').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();qteInput(b.dataset.k)}));
