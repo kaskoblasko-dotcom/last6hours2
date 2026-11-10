@@ -91,11 +91,23 @@ body.inm #pulse,body.inm #freeze,body.jx #pulse,body.jx #freeze{display:none!imp
 #stw div{height:7px;border:1px solid #556;background:#0008}
 #stw i{display:block;height:100%;background:#6aa0d0}
 #bC{right:calc(202px + env(safe-area-inset-right,0px));bottom:calc(110px + env(safe-area-inset-bottom,0px))}
-body.inm #stw,body.jx #stw,body.qte #stw{display:none!important}
+body.inm #stw,body.jx #stw,body.qte #stw,body.inm #hot,body.jx #hot,body.qte #hot{display:none!important}
+#bars>small:first-of-type,#bat,#botl{display:none!important}
+#hot{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:6px;z-index:12;pointer-events:none}
+body.t #hot{pointer-events:auto}
+.hs{position:relative;width:46px;height:46px;border:2px solid #556;background:#000a;border-radius:6px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;transition:border-color .15s,background .15s,opacity .15s;opacity:.55}
+.hs.on{opacity:1;border-color:#e8dc9a;background:#2a2814cc;box-shadow:0 0 10px #e8dc9a55}
+.hs.full{opacity:1;border-color:#8fb;background:#10281ccc}
+.hs svg{width:26px;height:26px;fill:none;stroke:#cfd8cf;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.hs.on svg{stroke:#ffeea0}.hs.full svg{stroke:#9fe8b8}
+.hs b{position:absolute;left:4px;top:1px;font:10px 'Courier New',monospace;color:#aab;font-weight:400}
+.hs em{position:absolute;left:4px;right:4px;bottom:3px;height:3px;background:#0008;display:block}
+.hs em i{display:block;height:100%;background:#ddc060}
 </style></head><body>
 <div id="vig" class="o"></div><div id="red" class="o"></div><div id="slats" class="o"></div><div id="cross"></div>
 <div id="clock">12 AM</div><div id="room"></div>
 <div id="bars"><small>FLASHLIGHT</small><div id="bat"><i style="width:100%"></i></div><small id="botl">BOTTLES: 2</small><small id="noteh">NOTES: 0/6</small><small id="fusel">FUSES: 0/3</small></div>
+<div id="hot"><div class="hs" id="h1"><b>1</b><svg viewBox="0 0 24 24"><path d="M8 3h8l-1 5h-6z"/><path d="M9 8v11a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V8"/><path d="M12 12v3"/><path d="M5 2 3 1M19 2l2-1M12 0v1" opacity=".6"/></svg><em><i id="h1b" style="width:100%"></i></em></div><div class="hs" id="h2"><b>2</b><svg viewBox="0 0 24 24"><path d="M10 2h4v4l2 3v11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V9l2-3z"/><path d="M8 13h8"/></svg></div><div class="hs" id="h3"><b>3</b><svg viewBox="0 0 24 24"><path d="M10 2h4v4l2 3v11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V9l2-3z"/><path d="M8 13h8"/></svg></div><div class="hs" id="h4"><b>4</b><svg viewBox="0 0 24 24"><path d="M10 2h4v4l2 3v11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V9l2-3z"/><path d="M8 13h8"/></svg></div><div class="hs" id="h5"><b>5</b><svg viewBox="0 0 24 24"><path d="M10 2h4v4l2 3v11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V9l2-3z"/><path d="M8 13h8"/></svg></div></div>
 <div id="stw"><small id="nzl">NOISE</small><div id="nz"><i style="width:0%"></i></div><small style="margin-top:7px">STAMINA</small><div id="sta"><i style="width:100%"></i></div></div>
 <div id="pulse" class="o"></div><div id="freeze">STAND STILL</div>
 <div id="msg"></div><div id="prompt"></div>
