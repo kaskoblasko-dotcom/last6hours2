@@ -29,7 +29,7 @@ function patchAndroid(){
 }
 function icons(){
  if(!fs.existsSync(path.join(root,'assets/icon-only.png'))){console.warn('No app/assets/icon-only.png: using the default Capacitor icon.');return}
- run('npx capacitor-assets generate --android --iconBackgroundColor #000000 --iconBackgroundColorDark #000000');
+ try{run('npx capacitor-assets generate --android --iconBackgroundColor #000000 --iconBackgroundColorDark #000000')}catch(e){console.warn('Icon generation failed, building with the default icon instead:',e.message)}
 }
 web();
 if(mode==='apk'){
