@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Prepares the Capacitor shell and builds the APK.
  *   node scripts/build.js web   -> writes www/config.js + capacitor.config.json, bundles ../game into www/game
- *   node scripts/build.js apk   -> web + (cap add android) + patch manifest/version + cap sync + gradle assembleDebug
+ *   node scripts/build.js apk   -> web + (cap add android) + patch manifest/version + icons + cap sync + gradle assembleDebug
  * Env: SERVER_URL (https://your.server, no trailing slash), APK_VERSION (integer, must increase each release) */
 const fs=require('fs'),path=require('path'),cp=require('child_process');
 const root=path.join(__dirname,'..'),mode=process.argv[2]||'web';
@@ -27,10 +27,14 @@ function patchAndroid(){
  const gr=path.join(root,'android/app/build.gradle');let g=fs.readFileSync(gr,'utf8');
  g=g.replace(/versionCode\s+\d+/,'versionCode '+VER).replace(/versionName\s+"[^"]*"/,'versionName "1.0.'+VER+'"');fs.writeFileSync(gr,g);
 }
+function icons(){
+ if(!fs.existsSync(path.join(root,'assets/icon-only.png'))){console.warn('No app/assets/icon-only.png: using the default Capacitor icon.');return}
+ run('npx capacitor-assets generate --android --iconBackgroundColor #000000 --iconBackgroundColorDark #000000');
+}
 web();
 if(mode==='apk'){
  if(!fs.existsSync(path.join(root,'android')))run('npx cap add android');
- patchAndroid();run('npx cap sync android');
+ patchAndroid();icons();run('npx cap sync android');
  const win=process.platform==='win32';run(win?'gradlew.bat assembleDebug':'./gradlew assembleDebug',path.join(root,'android'));
  console.log('\nAPK: '+path.join(root,'android/app/build/outputs/apk/debug/app-debug.apk'));
 }
